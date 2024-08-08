@@ -1,0 +1,14 @@
+{
+	"Targets": [
+		{
+			"Name": "UE_DOHUN",
+			"Path": "..\\Source\\UE_DOHUN.Target.cs",
+			"Type": "Game"
+		},
+		{
+			"Name": "UE_DOHUNEditor",
+			"Path": "..\\Source\\UE_DOHUNEditor.Target.cs",
+			"Type": "Editor"
+		}
+	]
+}
