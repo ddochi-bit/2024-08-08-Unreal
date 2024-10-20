@@ -45,10 +45,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	TArray<class ATFT_Item*> _items;
-	//
+	
 	UPROPERTY()
 	TSubclassOf<class ATFT_Item> _itemClass;
-	//
+	
 	int32 _storeMaxSize = 9;
 	UPROPERTY()
 	ATFT_Item* _item;

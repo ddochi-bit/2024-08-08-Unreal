@@ -27,7 +27,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float DamageRadius = 200.0f;
-
+	 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage")
 	float Lifetime = 5.0f;
 

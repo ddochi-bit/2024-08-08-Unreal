@@ -19,6 +19,11 @@
 
 #include "TFT_Player.h"
 
+#include "Blueprint/WidgetBlueprintLibrary.h"
+#include "Components/CanvasPanelSlot.h"
+#include "Input/Reply.h"
+#include "Input/Events.h"
+
 bool UTFT_Equipment_Window::Initialize()
 {
 	bool abc = Super::Initialize();
@@ -133,16 +138,6 @@ void UTFT_Equipment_Window::SelectSlotItem(int32 index)
 
 		SetItemChoice(_choiceSlot, index);
 
-		/*auto player = Cast<ATFT_Player>(GetWorld()->GetFirstPlayerController()->GetPawn());
-		switch (index)
-		{
-		case 4:
-			this_Item->
-			player->SetWeapon(this_Item);
-			break;
-		default:
-			break;
-		}*/
 	}
 	else
 	{
@@ -274,11 +269,15 @@ void UTFT_Equipment_Window::Changes(ATFT_Item* item, int32 index)
 
 		_EquipmentItem[index] = item;
 		Use_RWeapon->SetBrushFromTexture(item->GetMyTexture());
+		_ItemChangeEvent_stat.Broadcast(item);
 
 		return;
 	}
-
-	_EquipmentItem[index] = item;
+	else
+	{
+		_EquipmentItem[index] = item;
+		_ItemChangeEvent_stat.Broadcast(item);
+	}
 }
 
 void UTFT_Equipment_Window::SetItemChoice(UTexture2D* texture, int32 slotIndex)
@@ -297,5 +296,4 @@ void UTFT_Equipment_Window::ResetChoice()
 		this_Item = nullptr;
 	}
 }
-
 

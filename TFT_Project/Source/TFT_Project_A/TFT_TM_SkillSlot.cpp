@@ -14,9 +14,7 @@ void UTFT_TM_SkillSlot::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	// SkillSlotNumText->SetText(FText::FromString("2"));
 
-	// SkillSlotPB->SetPercent(1);
 }
 
 void UTFT_TM_SkillSlot::NativeConstruct()
@@ -58,7 +56,7 @@ void UTFT_TM_SkillSlot::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 
 void UTFT_TM_SkillSlot::SetSlotNumText(FString text)
 {
-	// FString num = FString::FromInt(slotNum);
+	
 
 	SkillSlotNumText->SetText(FText::FromString(*text));
 }

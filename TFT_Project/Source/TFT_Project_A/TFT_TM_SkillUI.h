@@ -21,10 +21,9 @@ public:
 
 	UTFT_TM_SkillSlot* GetSkillSlot(int32 slotNum) { return _skillSlots[slotNum]; }
 	
-	void SetSkillSlot(int32 slotNum, float CoolDownTime, int32 itemId); // img
+	void SetSkillSlot(int32 slotNum, float CoolDownTime, int32 itemId); 
 	void ResetSkillSlot(int32 slotNum);
-	// void SetPB(int32 slotNum, float percent);
-	// void SetCDT(int32 slotNum, float CoolDownTime);
+
 
 	void RunCDT(int32 slotNum);
 

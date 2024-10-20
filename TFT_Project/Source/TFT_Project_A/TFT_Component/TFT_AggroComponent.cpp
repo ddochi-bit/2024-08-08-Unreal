@@ -34,7 +34,7 @@ void UTFT_AggroComponent::AddDamage(float DamageAmount, AActor* DamagingActor)
             PlayerDamageMap.Add(DamagingActor, DamageAmount);
         }
 
-        //UpdateAggroTarget();
+       
     }
 }
 
@@ -45,9 +45,9 @@ AActor* UTFT_AggroComponent::GetAggroTarget()
     return AggroTarget;
 }
 
-float UTFT_AggroComponent::GetTotalDamage(AActor* DamagingActor)//
+float UTFT_AggroComponent::GetTotalDamage(AActor* DamagingActor)
 {
-    if (DamagingActor == nullptr) return -1; // Erorr
+    if (DamagingActor == nullptr) return -1; 
 
     float damage = PlayerDamageMap[DamagingActor];
 
@@ -67,7 +67,7 @@ void UTFT_AggroComponent::AggroList()
     {
         MessageKey++;
         AActor* enemy = all.Key;
-        FString enemyName = enemy->GetName();//"User" + FString::FromInt(MessageKey);//
+        FString enemyName = enemy->GetName();
         float enemyDamage = all.Value;
 
         DebugMessage = FString::Printf(TEXT("%s 's Total Damage : %f"), *enemyName, enemyDamage);
@@ -84,10 +84,10 @@ void UTFT_AggroComponent::AggroList()
 
         const float TimeToDisplay = 500.0f;
 
-        if (GEngine)
+        /*if (GEngine)
         {
             GEngine->AddOnScreenDebugMessage(MessageKey, TimeToDisplay, MessageColor, DebugMessage);
-        }
+        }*/
 
     }
 

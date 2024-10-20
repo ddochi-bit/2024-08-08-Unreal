@@ -36,6 +36,7 @@ public:
 	UFUNCTION()
 	void SetPlayerTest();
 
+	void MouseLock();
 private:
 	UPROPERTY()
 	class UTFT_JobChoice* JobSelectionWidgetInstance;

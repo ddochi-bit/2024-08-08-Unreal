@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "TFT_Equipment_Window.generated.h"
 
+
 class UButton;
 class ATFT_Item;
 class UImage;
@@ -13,9 +14,7 @@ class UImage;
 DECLARE_MULTICAST_DELEGATE_OneParam(ItemChangeEvent, ATFT_Item* item)
 
 DECLARE_MULTICAST_DELEGATE(CloseEquipmentBtn);
-/**
- * 
- */
+
 UCLASS()
 class TFT_PROJECT_A_API UTFT_Equipment_Window : public UUserWidget
 {
@@ -57,6 +56,7 @@ public:
 
 	CloseEquipmentBtn _CloseEquipmentBtn;
 	ItemChangeEvent _ItemChangeEvent;
+	ItemChangeEvent _ItemChangeEvent_stat;
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UCanvasPanel* TFT_Equipment;
@@ -106,5 +106,4 @@ private:
 	ATFT_Item* this_Item;
 	int32 this_Index = -1;
 	bool choiceCheck = false;
-
 };

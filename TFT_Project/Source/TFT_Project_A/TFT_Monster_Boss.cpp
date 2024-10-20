@@ -24,6 +24,7 @@
 #include "Components/SkeletalMeshComponent.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 
 ATFT_Monster_Boss::ATFT_Monster_Boss()
 {
@@ -38,8 +39,15 @@ ATFT_Monster_Boss::ATFT_Monster_Boss()
         HpBarWidgetClass = HpBar.Class;
     }
 
+    static ConstructorHelpers::FObjectFinder<UParticleSystem>
+        Smash(TEXT("'ParticleSystem'/Script/Engine.ParticleSystem'/Game/ParagonGrux/FX/Particles/Abilities/RipplingSmash/FX/P_RipplingSmash_Aligned_Initial.P_RipplingSmash_Aligned_Initial'"));
+    if (Smash.Succeeded())
+    {
+        SmashEffect = Smash.Object;
+    }
+
     AggroComponent = CreateDefaultSubobject<UTFT_AggroComponent>(TEXT("AggroComponent"));
-       
+
 
     _possessionExp = 100;
 
@@ -70,7 +78,6 @@ void ATFT_Monster_Boss::PostInitializeComponents()
         _animInstance_Boss->_deathStartDelegate.AddUObject(this, &ATFT_Monster_Boss::DeathStart);
         _animInstance_Boss->_bossDeathEndDelegate.AddUObject(this, &ATFT_Monster_Boss::Boss_DeathEnd);
         _animInstance_Boss->_deathEndDelegate.AddUObject(this, &ATFT_Monster_Boss::BossDisable);
-        _animInstance_Boss->OnMontageEnded.AddDynamic(this, &ATFT_Monster_Boss::OnAttackMontageEnded);
     }
 
     if (HpBarWidgetClass)
@@ -143,54 +150,54 @@ void ATFT_Monster_Boss::Attack_AI()
 {
     Super::Attack_AI();
 
-    if (_isAttacking == false && _animInstance_Boss != nullptr)
+    if (!_isAttacking && _animInstance_Boss != nullptr)
     {
-        PlayNextMontage();
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Attack is already in progress."));
-    }
-}
-
-
-
-void ATFT_Monster_Boss::ExecuteSkillMontage()
-{
-    if (_animInstance_Boss != nullptr)
-    {
-        _animInstance_Boss->PlaySkillMontage();
-        UE_LOG(LogTemp, Warning, TEXT("��ų ��Ÿ�ְ� ����Ǿ����ϴ�."));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("�ִϸ��̼� �ν��Ͻ��� ��ȿ���� �ʽ��ϴ�."));
-    }
-}
-
-void ATFT_Monster_Boss::PlayNextMontage()
-{
-    if (!bIsMontagePlaying)
-    {
-        bIsMontagePlaying = true;
-        _curAttackIndex %= 3;
-
-        _animInstance_Boss->PlayAttackMontage();
-        _animInstance_Boss->JumpToSection(_curAttackIndex);
-
-        if (!GetWorldTimerManager().IsTimerActive(SkillTimerHandle))
+        if (!_animInstance_Boss->Montage_IsPlaying(_animInstance_Boss->_myAnimMontage) &&
+            !_animInstance_Boss->Montage_IsPlaying(_animInstance_Boss->_skillMontage))
         {
-            UE_LOG(LogTemp, Warning, TEXT("Attack started, setting skill timer."));
-            GetWorldTimerManager().SetTimer(SkillTimerHandle, this, &ATFT_Monster_Boss::ExecuteSkillMontage, 10.0f, true);
+            if (FMath::RandRange(0, 100) < 15)
+            {
+                _animInstance_Boss->PlaySkillMontage();
+                StartParticleSpawnDelay();
+                UE_LOG(LogTemp, Warning, TEXT("Skill Montage played!"));
+            }
+            else
+            {
+                _animInstance_Boss->PlayAttackMontage();
+            }
+
+            _isAttacking = true;
+
+            _curAttackIndex %= 3;
+            _curAttackIndex++;
+            _animInstance_Boss->JumpToSection(_curAttackIndex);
         }
     }
 }
 
-void ATFT_Monster_Boss::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void ATFT_Monster_Boss::SpawnParticleEffect()
 {
-    bIsMontagePlaying = false;
+    if (SmashEffect)
+    {
+        FVector SpawnLocation = GetActorLocation();
 
-    ExecuteSkillMontage();
+        FVector ForwardVector = GetActorForwardVector();
+        FVector Offset = ForwardVector * 400.0f; 
+
+        SpawnLocation += Offset;
+
+        FRotator SpawnRotation = GetActorRotation();
+
+        UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SmashEffect, SpawnLocation, SpawnRotation, true);
+    }
+}
+
+void ATFT_Monster_Boss::StartParticleSpawnDelay()
+{
+    GetWorld()->GetTimerManager().ClearTimer(ParticleSpawnTimerHandle);
+
+    UE_LOG(LogTemp, Warning, TEXT("Starting particle spawn delay..."));
+    GetWorld()->GetTimerManager().SetTimer(ParticleSpawnTimerHandle, this, &ATFT_Monster_Boss::SpawnParticleEffect, 1.2f, false);
 }
 
 void ATFT_Monster_Boss::AttackStart()
@@ -199,16 +206,6 @@ void ATFT_Monster_Boss::AttackStart()
 
     SoundManager->Play("Monster_Boss_Swing", GetActorLocation());
 }
-
-void ATFT_Monster_Boss::AttackEnd()
-{
-    Super::AttackEnd();
-
-    _isAttacking = false;
-
-    GetWorldTimerManager().ClearTimer(SkillTimerHandle);
-}
-
 
 void ATFT_Monster_Boss::AttackHit_Boss()
 {
@@ -223,7 +220,7 @@ void ATFT_Monster_Boss::AttackHit_Boss()
         GetActorLocation(),
         GetActorLocation() + GetActorForwardVector() * attackRange,
         FQuat::Identity,
-        ECollisionChannel::ECC_GameTraceChannel3,
+        ECollisionChannel::ECC_GameTraceChannel10,
         FCollisionShape::MakeSphere(attackRadius),
         params
     );
@@ -302,11 +299,11 @@ void ATFT_Monster_Boss::BossDisable()
     auto controller = GetController();
     if (controller != nullptr) GetController()->UnPossess();
 
-	if (HpBarWidgetInstance)
-	{
-		HpBarWidgetInstance->RemoveFromParent();
-		HpBarWidgetInstance = nullptr;
-	}
+    if (HpBarWidgetInstance)
+    {
+        HpBarWidgetInstance->RemoveFromParent();
+        HpBarWidgetInstance = nullptr;
+    }
 
     _animInstance_Boss->_deathEndDelegate.RemoveAll(this);
 }
@@ -330,7 +327,7 @@ float ATFT_Monster_Boss::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 {
     float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-    AggroComponent->AddDamage(ActualDamage, DamageCauser); //
+    AggroComponent->AddDamage(ActualDamage, DamageCauser); 
     AggroComponent->AggroList();
 
     UpdateBlackboardTarget();
@@ -372,4 +369,3 @@ void ATFT_Monster_Boss::SetAggroUI()
         if (tempCount > 4) tempCount = 4;
     }
 }
-

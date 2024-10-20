@@ -45,10 +45,10 @@ void ATFT_Projectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FVector velocity = _movementCom->Velocity;
-	if (!velocity.IsNearlyZero())  // 속도가 0이 아닐 때만 회전
+	if (!velocity.IsNearlyZero())  
 	{
 		FRotator newRotation = velocity.Rotation();
-		SetActorRotation(newRotation);  // 새로운 회전값 적용
+		SetActorRotation(newRotation);  
 	}
 
 	

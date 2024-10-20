@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "TFT_TestMannequin.h"
 
 #include "TFT_MeshComponent.h"
@@ -22,15 +21,30 @@
 #include "Components/SphereComponent.h"
 
 #include "TFT_Item.h"
+#include "TFT_HpBar.h"
 
 ATFT_TestMannequin::ATFT_TestMannequin()
 {
 	_meshCom = CreateDefaultSubobject<UTFT_MeshComponent>(TEXT("Mesh_Com"));
 
-	SetMesh("/Script/Engine.SkeletalMesh'/Game/ControlRig/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple'");
-
 	_invenCom = CreateDefaultSubobject<UTFT_InvenComponent>(TEXT("Inven_Com"));
 
+	SetMesh("/Script/Engine.SkeletalMesh'/Game/ControlRig/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple'");
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> HpBar(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BluePrint/UI/TFT_HpBar_Player_BP.TFT_HpBar_Player_BP_C'"));
+	if (HpBar.Succeeded())
+	{
+		HpBarWidgetClass = HpBar.Class;
+	}
+
+	if (HpBarWidgetClass)
+	{
+		HpBarWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), HpBarWidgetClass);
+		if (HpBarWidgetInstance)
+		{
+			HpBarWidgetInstance->AddToViewport();
+		}
+	}
 }
 
 void ATFT_TestMannequin::PostInitializeComponents()
@@ -40,8 +54,21 @@ void ATFT_TestMannequin::PostInitializeComponents()
 	_animInstanceTM = Cast<UTFT_AnimInstance_TestMannequin>(GetMesh()->GetAnimInstance());
 	if (_animInstanceTM->IsValidLowLevel())
 	{
+		_animInstanceTM->_attackStartDelegate.AddUObject(this, &ATFT_TestMannequin::AttackStart);
+		_animInstanceTM->_attackHitDelegate.AddUObject(this, &ATFT_TestMannequin::AttackHit);
+		_animInstanceTM->OnMontageEnded.AddDynamic(this, &ATFT_Creature::OnAttackEnded);
 		_animInstanceTM->_dashEndDelegate.AddUObject(this, &ATFT_TestMannequin::DashEnd);
 		_animInstanceTM->_attackHit_QDelegate.AddUObject(this, &ATFT_TestMannequin::AttackHit_Q);
+	}
+
+	if (HpBarWidgetInstance)
+	{
+		UTFT_HpBar* HpBar = Cast<UTFT_HpBar>(HpBarWidgetInstance);
+		if (HpBar)
+		{
+			_statCom->_hpChangedDelegate.AddUObject(HpBar, &UTFT_HpBar::SetHpBarValue);
+			_statCom->_expChangedDelegate.AddUObject(HpBar, &UTFT_HpBar::SetExpBarValue);
+		}
 	}
 }
 
@@ -73,7 +100,7 @@ void ATFT_TestMannequin::PlayE_Skill(const FInputActionValue& value)
 		{
 			_animInstTM->PlayE_SkillMontage();
 
-			// UIMANAGER->GetSkillUI()->SetSkillSlot(1, 8.0f, _invenCom->_currentWeapon->_Itemid);
+			
 			UIMANAGER->GetSkillUI()->RunCDT(1);
 		}
 	}
@@ -95,7 +122,7 @@ void ATFT_TestMannequin::PlayQ_Skill(const FInputActionValue& value)
 		{
 			_animInstTM->PlayQ_SkillMontage();
 
-			// UIMANAGER->GetSkillUI()->SetSkillSlot(0, 5.0f, _invenCom->_currentWeapon->_Itemid);
+			
 			UIMANAGER->GetSkillUI()->RunCDT(0);
 		}
 	}
@@ -104,16 +131,41 @@ void ATFT_TestMannequin::PlayQ_Skill(const FInputActionValue& value)
 void ATFT_TestMannequin::PlayAttack(const FInputActionValue& value)
 {
 	Super::PlayAttack(value);
-	
+
 	if (GetCurHp() <= 0) return;
+	if (_invenCom->_currentWeapon == nullptr) return;
 
 	bool isPressed = value.Get<bool>();
 
-	if (isPressed && _animInstanceTM != nullptr)
+	if (_isAttacking == false && isPressed && _animInstanceTM != nullptr)
 	{
 		if (auto _animInstTM = Cast<UTFT_AnimInstance_TestMannequin>(_animInstanceTM))
 		{
-			_animInstTM->PlayAttackMontage();
+			if (_invenCom->_currentWeapon->_Itemid == 1)
+			{
+				_animInstTM->PlayAttackMontage();
+				_isAttacking = true;
+
+				_curAttackIndex %= 3;
+				_curAttackIndex++;
+
+				_animInstTM->JumpToSection(_curAttackIndex);
+			}
+			else if (_invenCom->_currentWeapon->_Itemid == 3)
+			{
+				_animInstTM->PlayAttackMontage2Hend();
+				_isAttacking = true;
+
+				_curAttackIndex %= 2;
+				_curAttackIndex++;
+
+				_animInstTM->JumpToSection(_curAttackIndex);
+			}
+			else
+			{
+				//UE_LOG(LogTemp, Log, TEXT("no Weapon no attack"));
+				_animInstTM->PlayAttackMontage();
+			}
 		}
 	}
 }
@@ -275,6 +327,55 @@ void ATFT_TestMannequin::DashEnd()
 	}
 }
 
+void ATFT_TestMannequin::AttackStart()
+{
+	Super::AttackStart();
+
+	if (_invenCom->_currentWeapon->_Itemid == 1)
+	{
+		SoundManager->Play("Knight_Swing", GetActorLocation());
+	}
+	else if (_invenCom->_currentWeapon->_Itemid == 3)
+	{
+		SoundManager->Play("Hammer_Swing", GetActorLocation());
+	}
+}
+
+void ATFT_TestMannequin::AttackHit()
+{
+	FHitResult hitResult;
+	FCollisionQueryParams params(NAME_None, false, this);
+
+	float attackRange = 500.0f;
+	float attackRadius = 100.0f;
+
+	bool bResult = GetWorld()->SweepSingleByChannel
+	(
+		hitResult,
+		GetActorLocation(),
+		GetActorLocation() + GetActorForwardVector() * attackRange,
+		FQuat::Identity,
+		ECollisionChannel::ECC_GameTraceChannel9,
+		FCollisionShape::MakeSphere(attackRadius),
+		params
+	);
+
+	FVector vec = GetActorForwardVector() * attackRange;
+	FVector center = GetActorLocation() + vec * 0.5f;
+	FColor drawColor = FColor::Green;
+
+	if (bResult && hitResult.GetActor()->IsValidLowLevel())
+	{
+		drawColor = FColor::Red;
+		FDamageEvent damageEvent;
+
+		hitResult.GetActor()->TakeDamage(50.0f, damageEvent, GetController(), this);
+		_hitPoint = hitResult.ImpactPoint;
+	}
+
+	DrawDebugSphere(GetWorld(), center, attackRadius, 20, drawColor, false, 2.0f);
+}
+
 void ATFT_TestMannequin::AttackHit_Q()
 {
 	FHitResult hitResult;
@@ -289,7 +390,7 @@ void ATFT_TestMannequin::AttackHit_Q()
 		GetActorLocation(),
 		GetActorLocation() + GetActorForwardVector() * attackRange,
 		FQuat::Identity,
-		ECollisionChannel::ECC_GameTraceChannel3,
+		ECollisionChannel::ECC_GameTraceChannel9,
 		FCollisionShape::MakeSphere(attackRadius),
 		params
 	);
@@ -302,8 +403,8 @@ void ATFT_TestMannequin::AttackHit_Q()
 	{
 		drawColor = FColor::Red;
 		FDamageEvent damageEvent;
-		// temp damage
-		hitResult.GetActor()->TakeDamage(1000.0f, damageEvent, GetController(), this);
+		
+		hitResult.GetActor()->TakeDamage(300.0f, damageEvent, GetController(), this);
 		_hitPoint = hitResult.ImpactPoint;
 	}
 

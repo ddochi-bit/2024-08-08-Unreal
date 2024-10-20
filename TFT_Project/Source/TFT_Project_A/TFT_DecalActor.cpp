@@ -69,7 +69,6 @@ void ATFT_DecalActor::DeActiveEvent(FVector location)
     FVector DecalLocation = GetActorLocation();
     float Radius = _areaRadius;
 
-   
     UWorld* World = GetWorld();
     if (World)
     {
@@ -104,7 +103,7 @@ void ATFT_DecalActor::DeActiveEvent(FVector location)
         }
     }
 
-    // DrawDebugSphere(GetWorld(), DecalLocation, Radius, 20, FColor::Red, false, 2.0f);
+    
 
 	EffectManager->Play("P_Explosion", 0, location);
 }

@@ -16,7 +16,7 @@
 UTFT_BT_Service_TeamAI_FindTarget::UTFT_BT_Service_TeamAI_FindTarget()
 {
 	NodeName = TEXT("FindTarget");
-	Interval = 1.0f;
+	Interval = 0.5f;
 }
 
 void UTFT_BT_Service_TeamAI_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -32,7 +32,7 @@ void UTFT_BT_Service_TeamAI_FindTarget::TickNode(UBehaviorTreeComponent& OwnerCo
 	if (world == nullptr) return;
 
 	FVector center = currentPawn->GetActorLocation();
-	float searchRadius = 1500.0f;
+	float searchRadius = 1000.0f;
 	
 	TArray<FOverlapResult> overlapResult;
 	FCollisionQueryParams qParams(NAME_None, false, currentPawn);

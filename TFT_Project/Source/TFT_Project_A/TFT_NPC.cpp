@@ -8,7 +8,6 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/Engine.h"
 
-
 ATFT_NPC::ATFT_NPC()
 {
 	_meshCom = CreateDefaultSubobject<UTFT_MeshComponent>(TEXT("Mesh_Com"));
@@ -22,6 +21,7 @@ ATFT_NPC::ATFT_NPC()
 	_area->SetSphereRadius(100.0f);
 
 	_storeCom = CreateDefaultSubobject<UTFT_StoreComponent>(TEXT("Store_Com"));
+
 }
 
 void ATFT_NPC::SetMesh(FString path)
@@ -32,6 +32,7 @@ void ATFT_NPC::SetMesh(FString path)
 void ATFT_NPC::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void ATFT_NPC::PostInitializeComponents()
@@ -40,6 +41,7 @@ void ATFT_NPC::PostInitializeComponents()
 
 	_area->OnComponentBeginOverlap.AddDynamic(this, &ATFT_NPC::OnPlayerOverlapBegin);
 	_area->OnComponentEndOverlap.AddDynamic(this, &ATFT_NPC::OnPlayerOverlapEnd);
+
 }
 
 
@@ -54,17 +56,21 @@ void ATFT_NPC::OnPlayerOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 
 		_interface = Cast<ITFT_InteractionInterface>(OtherActor);
 		_isOverlap = true;
-		_storeCom->GetStoreUI()->StoreOpenClose();
+		_storeCom->GetStoreUI()->StoreOpen();
 	}
 }
 
 void ATFT_NPC::OnPlayerOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	auto player = Cast<ATFT_Player>(OtherActor);
+
 	if (player != nullptr)
 	{
 		_interface = nullptr;
 		_isOverlap = false;
-		_storeCom->GetStoreUI()->StoreOpenClose();
+		_storeCom->GetStoreUI()->StoreClose();
 	}
 }
+
+
+

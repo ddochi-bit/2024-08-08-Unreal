@@ -32,11 +32,12 @@ public:
 
 	FTFT_StatData* GetStatDataByLevel(int32 level);
 
+	UFUNCTION(BlueprintCallable)
 	ATFT_UIManager* GetUIManager() { return _uiManager; }
 	ATFT_Effect_Manager* GetEffectManager() { return _effectManager; }
 	ATFT_SoundManager* GetSoundManager() { return _soundManager; }
 
-private:
+public:
 
 	UPROPERTY()
 	class UDataTable* _statTable;

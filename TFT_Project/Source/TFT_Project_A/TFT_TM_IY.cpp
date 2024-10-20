@@ -59,7 +59,7 @@ void ATFT_TM_IY::Dash(const FInputActionValue& value)
 {
 	Super::Dash(value);
 
-	// this->LaunchCharacter((GetActorForwardVector() * dashStrength), false, false);
+	
 	
 	if (bCanDash && GetVelocity() != FVector::ZeroVector && !GetCharacterMovement()->IsFalling())
 	{
@@ -73,21 +73,6 @@ void ATFT_TM_IY::Dash(const FInputActionValue& value)
 		LaunchCharacter((_dir * dashStrength_Ground), false, false);
 		bCanDash = false;
 
-		/*if (GetCharacterMovement()->IsFalling())
-		{
-			LaunchCharacter((_dir * dashStrength_Air), false, false);
-			bCanDash = false;
-		}
-		else
-		{
-			GetCharacterMovement()->BrakingFrictionFactor = 0.0f;
-			LaunchCharacter((_dir * dashStrength_Ground), false, false);
-			bCanDash = false;
-		}*/
-
-		// GetCharacterMovement()->BrakingFrictionFactor = 0.0f;
-		// UE_LOG(LogTemp, Log, TEXT("%f"), GetCharacterMovement()->BrakingFrictionFactor);
-		// LaunchCharacter((GetLastMovementInputVector() * dashStrength), false, false);
 
 		bCanDash = false;
 	}	
@@ -97,8 +82,7 @@ void ATFT_TM_IY::DoubleTapDash_Front(const FInputActionValue& value)
 {
 	Super::DoubleTapDash_Front(value);
 
-	// FVector2D doubleTap = value.Get<FVector2D>();
-	// UE_LOG(LogTemp, Log, TEXT("%f, %f"), doubleTap.X, doubleTap.Y);
+
 
 	if (bCanDash && !GetCharacterMovement()->IsFalling())
 	{
@@ -123,8 +107,7 @@ void ATFT_TM_IY::DoubleTapDash_Back(const FInputActionValue& value)
 {
 	Super::DoubleTapDash_Back(value);
 
-	// FVector2D doubleTap = value.Get<FVector2D>();
-	// UE_LOG(LogTemp, Log, TEXT("%f, %f"), doubleTap.X, doubleTap.Y);
+
 
 	if (bCanDash && !GetCharacterMovement()->IsFalling())
 	{
@@ -149,8 +132,7 @@ void ATFT_TM_IY::DoubleTapDash_Left(const FInputActionValue& value)
 {
 	Super::DoubleTapDash_Left(value);
 
-	// FVector2D doubleTap = value.Get<FVector2D>();
-	// UE_LOG(LogTemp, Log, TEXT("%f, %f"), doubleTap.X, doubleTap.Y);
+
 
 	if (bCanDash && !GetCharacterMovement()->IsFalling())
 	{
@@ -175,8 +157,7 @@ void ATFT_TM_IY::DoubleTapDash_Right(const FInputActionValue& value)
 {
 	Super::DoubleTapDash_Right(value);
 
-	// FVector2D doubleTap = value.Get<FVector2D>();
-	// UE_LOG(LogTemp, Log, TEXT("%f, %f"), doubleTap.X, doubleTap.Y);
+
 
 	if (bCanDash && !GetCharacterMovement()->IsFalling())
 	{
@@ -205,9 +186,9 @@ void ATFT_TM_IY::DashEnd()
 		bBlockInputOnDash = false;
 
 		GetCharacterMovement()->BrakingFrictionFactor = 2.0f;
-		// UE_LOG(LogTemp, Log, TEXT("%f"), GetCharacterMovement()->BrakingFrictionFactor);
+		
 		GetCharacterMovement()->StopMovementImmediately();
-		// LaunchCharacter(FVector::ZeroVector, true, true);
+		
 
 		isDashing = false;
 	}
@@ -247,7 +228,7 @@ void ATFT_TM_IY::AttackHit()
 		GetActorLocation(),
 		GetActorLocation() + GetActorForwardVector() * attackRange,
 		FQuat::Identity,
-		ECollisionChannel::ECC_GameTraceChannel3,
+		ECollisionChannel::ECC_GameTraceChannel9,
 		FCollisionShape::MakeSphere(attackRadius),
 		params
 	);
@@ -260,7 +241,7 @@ void ATFT_TM_IY::AttackHit()
 	{
 		drawColor = FColor::Red;
 		FDamageEvent damageEvent;
-		// temp damage
+		
 		hitResult.GetActor()->TakeDamage(1000.0f, damageEvent, GetController(), this);
 		_hitPoint = hitResult.ImpactPoint;
 	}

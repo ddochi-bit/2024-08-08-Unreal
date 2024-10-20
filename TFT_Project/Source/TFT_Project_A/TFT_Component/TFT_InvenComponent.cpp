@@ -85,8 +85,10 @@ void UTFT_InvenComponent::DropItem(int32 index)
 	FVector playerPos = GetOwner()->GetActorLocation();
 	FVector itemPos = playerPos + FVector(X, Y, 0.0f);
 	_items[index]->SetItemPos(itemPos);
+	//ATFT_Item* itemToRemove = _items[index];
+	//itemToRemove->SetItemPos(itemPos);
 
-	ATFT_Item* itemToRemove = _items[index];
+
 	_items[index] = nullptr;
 }
 
@@ -100,16 +102,7 @@ void UTFT_InvenComponent::SellItem(int32 index)
 
 void UTFT_InvenComponent::UseItem(int32 index)
 {
-	//if (_items[index]->GetItemType() == "Equipment") // equipment
-	//{
-	//	UE_LOG(LogTemp, Log, TEXT("Equipment Item Use"));
 
-	//}
-	//else if (_items[index]->GetItemType() == "Utility") // Utility
-	//{
-	//	UE_LOG(LogTemp, Log, TEXT("Utility Item Use"));
-
-	//}
 
 	_items[index] = nullptr;
 }
@@ -127,7 +120,7 @@ void UTFT_InvenComponent::AddPlayerGold(int32 gold)
 
 void UTFT_InvenComponent::SetWeapon(ATFT_Item* NewWeapon)
 {
-	if (NewWeapon == nullptr /*&& !CanSetWeapon()*/) return;
+	if (NewWeapon == nullptr) return;
 
 	auto player = Cast<ATFT_Player>(GetOwner());
 

@@ -6,9 +6,6 @@
 #include "TFT_Player.h"
 #include "TFT_TM_BJ.generated.h"
 
-/**
- *
- */
 UCLASS()
 class TFT_PROJECT_A_API ATFT_TM_BJ : public ATFT_Player
 {
@@ -23,7 +20,6 @@ public:
 
 	virtual void PlayAttack(const FInputActionValue& value) override;
 
-	// 공격 애니메이션이 끝났을 때 호출될 함수 선언
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 

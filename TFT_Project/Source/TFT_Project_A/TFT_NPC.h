@@ -36,11 +36,13 @@ public:
 	void OnPlayerOverlapEnd
 	(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
 	USphereComponent* _area;
 
 	bool _isOverlap = false;
+	bool _storecheke = false;
 
 	class ITFT_InteractionInterface* _interface = nullptr;
 };

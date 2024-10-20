@@ -22,12 +22,11 @@
 
 #include "TFT_Player.generated.h"
 
-
-
 class UInputComponent;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
+class UBoxComponent;
 
 
 UCLASS()
@@ -57,8 +56,7 @@ protected:
 	void InvenopenA(const FInputActionValue& value);
 	void EquipmentA(const FInputActionValue& value);
 	void UseSkill(const FInputActionValue& value);
-	void Rolling();
-	
+	void Rolling();	
 
 	virtual void PlayE_Skill(const FInputActionValue& value) {};
 	virtual void PlayQ_Skill(const FInputActionValue& value) {};
@@ -71,18 +69,28 @@ protected:
 	virtual void StartSprint();
 	virtual void StopSprint();
 	
-	
-
 public:
 	void AddItemPlayer(ATFT_Item* item);
 	void AddItemHendle(ATFT_Item* item, int32 index);
 	void DropItemPlayer(ATFT_Item* item, int32 index);
 	void SellItemPlayer(ATFT_Item* item, int32 index);
 	void UseItemPlayer(ATFT_Item* item, int32 index);
-	void UseItemPlayer_Equipment(ATFT_Item* item, int32 index);
+	void UseItemPlayer_Equipment(ATFT_Item* item);
 	void UIGold(int32 gold);
 	void ChangeEquipment(ATFT_Item* item);
 	void CloseResetEquipment();
+
+private:
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void SetPartyUI();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -96,6 +104,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AlllowPrivateAccess = "true"))
 	UInputAction* _dashAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AlllowPrivateAccess = "true"))
+	bool _canMove = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AlllowPrivateAccess = "true"))
 	UInputAction* _doubleTapDash_W_Action;
@@ -169,16 +180,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* _myAnimMontage;
 
-	// Temp Weapon
-	// bool CanSetWeapon();
-	// void SetWeapon(class ATFT_Item* NewWeapon);
-
-	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
-	// ATFT_Item* _currentWeapon;
+	
 
 
-protected:
-	// Dash
+protected:	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bCanDash = true;
 
@@ -193,5 +198,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta =(UIMin = "0.0", UIMax = "1.0", ClampMin = "0.0", ClampMax = "1.0"))
 	float dashEndDempener;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
+	UBoxComponent* _triggerBox;
 
 };

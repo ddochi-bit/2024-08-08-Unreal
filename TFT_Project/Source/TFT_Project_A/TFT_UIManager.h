@@ -66,32 +66,40 @@ public:
 	UTFT_TM_SkillUI* GetSkillUI() { return _skillUIWidget; }
 	UTFT_Equipment_Window* GetEquipmentUI() { return _EquipmentWidget; }
 	UTFT_AggroUI* GetAggroUI() { return _aggroUIWidget; }
+	UUTFT_PartyHPWidget* GetPartyHPUI() { return _partyHPWidget; }
+
+	UFUNCTION(BlueprintCallable)
+	TArray<UUserWidget*> GetWidgets() { return _widgets; }
 
 	UIOpenEvent _invenOpenEvent;
 	UIOpenEvent _EquipmentOpenEvent;
 	UIOpenEvent _EquipmentCloseResetEvent;
 
-private:
-	UPROPERTY()
+	void MouseUnLock(UIType type);
+	void MouseLock(UIType type);
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UUserWidget*> _widgets;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI, meta = (AllowPrivateAccess = "true"))
 	UTFT_InvenUI* _invenWidget;
 
 	bool _UIInvenarea = false;
 	bool _UIEquipmentarea = false;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI, meta = (AllowPrivateAccess = "true"))
 	UUserWidget* _crossHair;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI, meta = (AllowPrivateAccess = "true"))
 	UTFT_TM_SkillUI* _skillUIWidget;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI, meta = (AllowPrivateAccess = "true"))
 	UTFT_Equipment_Window* _EquipmentWidget;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI, meta = (AllowPrivateAccess = "true"))
 	UTFT_AggroUI* _aggroUIWidget;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI, meta = (AllowPrivateAccess = "true"))
 	UUTFT_PartyHPWidget* _partyHPWidget;
 };

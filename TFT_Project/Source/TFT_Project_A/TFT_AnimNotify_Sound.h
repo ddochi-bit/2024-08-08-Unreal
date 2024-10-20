@@ -6,9 +6,7 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "TFT_AnimNotify_Sound.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class TFT_PROJECT_A_API UTFT_AnimNotify_Sound : public UAnimNotify
 {

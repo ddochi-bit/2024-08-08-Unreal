@@ -33,6 +33,8 @@ ATFT_SoundManager::ATFT_SoundManager()
 
 	CreateSoundCue("Use_Skill", "/Script/Engine.SoundCue'/Game/Sound/BGM/Explosion.Explosion'");
 	CreateSoundCue("JumpAttack", "/Script/Engine.SoundCue'/Game/Sound/BGM/DeathExplosion.DeathExplosion'");
+
+	CreateSoundCue("Hammer_Swing", "/Script/Engine.SoundCue'/Game/Blade_Swings_And_Hits/CUES/Swings/Long_And_Large/TFT_Hammer_Swing.TFT_Hammer_Swing'");
 }
 
 void ATFT_SoundManager::CreateSoundCue(FString keyName, FString path)

@@ -6,9 +6,7 @@
 #include "AIController.h"
 #include "TFT_TB_AIController_BJ.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class TFT_PROJECT_A_API ATFT_TB_AIController_BJ : public AAIController
 {

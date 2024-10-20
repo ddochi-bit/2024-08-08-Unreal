@@ -5,6 +5,7 @@
 #include "TFT_Creature.h"
 #include "TFT_Knight.h"
 #include "TFT_Monster.h"
+#include "TFT_TeamAI.h"
 #include "Components/CapsuleComponent.h"
 
 #include "GameFramework/SpringArmComponent.h"
@@ -27,6 +28,10 @@
 #include "Engine/DamageEvents.h"
 
 #include "TFT_TM_SkillUI.h"
+#include "UTFT_PartyHPWidget.h"
+
+#include "Components/BoxComponent.h"
+#include "Engine/OverlapResult.h"
 
 ATFT_Player::ATFT_Player()
 {
@@ -41,6 +46,11 @@ ATFT_Player::ATFT_Player()
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
 
 	_statCom->SetExp(0);
+
+	_triggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
+	_triggerBox->SetupAttachment(RootComponent);
+	_triggerBox->SetBoxExtent(FVector(300.f, 300.f, 100.f));
+	_triggerBox->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 }
 
 void ATFT_Player::BeginPlay()
@@ -56,6 +66,13 @@ void ATFT_Player::BeginPlay()
 		UIMANAGER->GetInvenUI()->_itemSellEvent.AddUObject(this, &ATFT_Player::SellItemPlayer);
 		UIMANAGER->GetInvenUI()->_itemUesEvent.AddUObject(this, &ATFT_Player::UseItemPlayer);
 		UIMANAGER->GetEquipmentUI()->_ItemChangeEvent.AddUObject(this, &ATFT_Player::ChangeEquipment);
+		UIMANAGER->GetEquipmentUI()->_ItemChangeEvent_stat.AddUObject(this, &ATFT_Player::UseItemPlayer_Equipment);
+	}
+
+	if (_triggerBox != nullptr)
+	{
+		_triggerBox->OnComponentBeginOverlap.AddDynamic(this, &ATFT_Player::OnOverlapBegin);
+		_triggerBox->OnComponentEndOverlap.AddDynamic(this, &ATFT_Player::OnOverlapEnd);
 	}
 }
 
@@ -67,6 +84,8 @@ void ATFT_Player::PostInitializeComponents()
 void ATFT_Player::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// SetPartyUI();
 }
 
 void ATFT_Player::Init()
@@ -116,7 +135,7 @@ void ATFT_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 void ATFT_Player::Interact(ATFT_Item* item)
 {
-	//UE_LOG(LogTemp, Log, TEXT("Player Interact With NPC!"));
+	
 
 	if (_invenCom != nullptr && _invenCom->GetPlayerGold() > item->GetItemGold())
 	{
@@ -137,6 +156,8 @@ void ATFT_Player::LevelUp()
 
 void ATFT_Player::Move(const FInputActionValue& value)
 {
+	if (!_canMove) return;
+
 	if (GetCurHp() <= 0) return;
 
 	FVector2D MovementVector = value.Get<FVector2D>();
@@ -272,10 +293,8 @@ void ATFT_Player::UseSkill(const FInputActionValue& value)
 		UWorld* World = GetWorld();
 		if (World)
 		{
-			
 			FCollisionShape SkillCollision = FCollisionShape::MakeSphere(CollisionRadius);
 
-		
 			TArray<FHitResult> HitResults;
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(this); 
@@ -328,9 +347,6 @@ void ATFT_Player::StopSprint()
 void ATFT_Player::AddItemPlayer(ATFT_Item* item) 
 {
 	if(_invenCom != nullptr) _invenCom->AddItem(item);
-	
-
-	if (_statCom != nullptr) _statCom->AddAttackDamage(item->GetItemAttackDamage());
 }
 
 void ATFT_Player::AddItemHendle(ATFT_Item* item, int32 index) 
@@ -341,18 +357,14 @@ void ATFT_Player::AddItemHendle(ATFT_Item* item, int32 index)
 void ATFT_Player::DropItemPlayer(ATFT_Item* item, int32 index)
 {
 	if (_invenCom != nullptr)  _invenCom->DropItem(index);
-
-	if (_statCom != nullptr) _statCom->AddAttackDamage(-item->GetItemAttackDamage());
 }
 
 void ATFT_Player::SellItemPlayer(ATFT_Item* item, int32 index)
 {
 	if (_invenCom != nullptr)  _invenCom->SellItem(index);
-
-	if (_statCom != nullptr) _statCom->AddAttackDamage(-item->GetItemAttackDamage());
 }
 
-void ATFT_Player::UseItemPlayer(ATFT_Item* item, int32 index)// E_1
+void ATFT_Player::UseItemPlayer(ATFT_Item* item, int32 index)
 {
 	if (item->GetItemType() == "Equipment")
 	{
@@ -369,9 +381,9 @@ void ATFT_Player::UseItemPlayer(ATFT_Item* item, int32 index)// E_1
 	}
 }
 
-void ATFT_Player::UseItemPlayer_Equipment(ATFT_Item* item, int32 index)// E_2
+void ATFT_Player::UseItemPlayer_Equipment(ATFT_Item* item)
 {
-
+	if (_statCom != nullptr) _statCom->AddAttackDamage(item->GetItemAttackDamage());
 }
 
 void ATFT_Player::UIGold(int32 gold)
@@ -381,10 +393,97 @@ void ATFT_Player::UIGold(int32 gold)
 
 void ATFT_Player::ChangeEquipment(ATFT_Item* item)
 {
+	if (_statCom != nullptr) _statCom->AddAttackDamage(-item->GetItemAttackDamage());
+
 	_invenCom->AddItem(item);
+
 }
 
 void ATFT_Player::CloseResetEquipment()
 {
 	UIMANAGER->GetEquipmentUI()->ResetChoice();
+}
+
+void ATFT_Player::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!_canMove) return;
+
+	if (UIMANAGER->GetPartyHPUI()->IsOpened()) return;
+
+	ATFT_TeamAI* teamAI = Cast<ATFT_TeamAI>(OtherActor);
+
+	if (teamAI != nullptr)
+	{
+		UIMANAGER->OpenWidget(UIType::PartyHPUI);
+	}
+}
+
+void ATFT_Player::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!_canMove) return;
+
+	if (!UIMANAGER->GetPartyHPUI()->IsOpened()) return;
+
+	ATFT_TeamAI* teamAI = Cast<ATFT_TeamAI>(OtherActor);
+
+	if (teamAI != nullptr)
+	{
+		UIMANAGER->CloseWidget(UIType::PartyHPUI);
+	}
+
+	SetPartyUI();
+}
+
+void ATFT_Player::SetPartyUI()
+{
+	if (!_canMove) return;
+
+	auto currentPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+	if (currentPawn == nullptr) return;
+
+	auto world = GetWorld();
+	if (world == nullptr) return;
+
+	FVector center = GetActorLocation();
+	float searchRadius = 1500.0f;
+
+	TArray<FOverlapResult> overlapResult;
+	FCollisionQueryParams qParams(NAME_None, false, currentPawn);
+
+	bool bResult = world->OverlapMultiByChannel
+	(
+		overlapResult,
+		center,
+		FQuat::Identity,
+		ECollisionChannel::ECC_GameTraceChannel4,
+		FCollisionShape::MakeSphere(searchRadius),
+		qParams
+	);
+
+	FColor drawColor = FColor::Green;
+
+	if (bResult)
+	{
+		for (auto& result : overlapResult)
+		{
+			auto target = Cast<ATFT_TeamAI>(result.GetActor());
+
+			if (target != nullptr)
+			{
+				drawColor = FColor::Red;
+
+				if (UIMANAGER->GetPartyHPUI()->IsOpened()) return;
+
+				UIMANAGER->OpenWidget(UIType::PartyHPUI);
+
+				return;
+			}
+		}	
+	}
+	
+	DrawDebugSphere(GetWorld(), center, searchRadius, 20, drawColor, false, 2.0f);
+
+	if (!UIMANAGER->GetPartyHPUI()->IsOpened()) return;
+
+	UIMANAGER->CloseWidget(UIType::PartyHPUI);
 }

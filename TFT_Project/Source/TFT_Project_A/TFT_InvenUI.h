@@ -74,6 +74,7 @@ public:
 	SlotItem _itemEquipmentEvent;
 	SlotItem _itemUesEvent;
 
+	bool storeCheke = false;
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UCanvasPanel* Inven_Panel;
@@ -83,6 +84,7 @@ private:
 
 	UPROPERTY()
 	bool bIsOpen = false;
+
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

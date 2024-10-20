@@ -6,9 +6,6 @@
 #include "TFT_Player.h"
 #include "TFT_TM_IY.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class TFT_PROJECT_A_API ATFT_TM_IY : public ATFT_Player
 {
@@ -41,12 +38,12 @@ public:
 private:
 
 public:
-	// Skill
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Skill, meta = (AloowPrivateAccess = true))
 	bool bSkillBool_1 = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Skill, meta = (AloowPrivateAccess = true))
 	bool bSkillBool_2 = true;
 
-	// bool _isSkillOn = false;
+	
 };

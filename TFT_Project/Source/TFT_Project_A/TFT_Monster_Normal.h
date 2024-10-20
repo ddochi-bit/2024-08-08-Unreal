@@ -31,7 +31,8 @@ public:
 	UFUNCTION()
 	void AttackHit();
 
-	
+	UFUNCTION()
+	void MaintainDistanceFromOtherAIs();
 
 	virtual void DropItem() override;
 	

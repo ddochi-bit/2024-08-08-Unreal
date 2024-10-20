@@ -11,18 +11,15 @@ ATFT_Npc_store::ATFT_Npc_store()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-
     TriggerBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerBox"));
     TriggerBox->SetupAttachment(RootComponent);
     TriggerBox->SetBoxExtent(FVector(200.f, 200.f, 200.f));
     TriggerBox->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
-  
     TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &ATFT_Npc_store::OnOverlapBegin);
     TriggerBox->OnComponentEndOverlap.AddDynamic(this, &ATFT_Npc_store::OnOverlapEnd);
 
     _storeCom = CreateDefaultSubobject<UTFT_StoreComponent>(TEXT("Store_Com"));
-
 }
 
 void ATFT_Npc_store::BeginPlay()
@@ -49,11 +46,10 @@ void ATFT_Npc_store::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 {
     ATFT_Player* player = Cast<ATFT_Player>(OtherActor);
 
-
     if (player != nullptr)
     {
         _interface = Cast<ITFT_InteractionInterface>(OtherActor);
-        _storeCom->GetStoreUI()->StoreOpenClose();
+        _storeCom->GetStoreUI()->StoreOpen();
     }
 }
 
@@ -65,6 +61,6 @@ void ATFT_Npc_store::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
     if (player != nullptr)
     {
         _interface = nullptr;
-        _storeCom->GetStoreUI()->StoreOpenClose();
+        _storeCom->GetStoreUI()->StoreClose();
     }
 }

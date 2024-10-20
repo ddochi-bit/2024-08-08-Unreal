@@ -6,9 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "TFT_AnimInstance_DH.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class TFT_PROJECT_A_API UTFT_AnimInstance_DH : public UAnimInstance
 {

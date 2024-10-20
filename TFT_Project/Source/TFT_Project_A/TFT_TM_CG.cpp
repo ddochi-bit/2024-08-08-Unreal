@@ -33,22 +33,6 @@ ATFT_TM_CG::ATFT_TM_CG()
 		}
 	}
 
-	/*FName WeaponSocket(TEXT("WeaponSocket"));
-	if (GetMesh()->DoesSocketExist(WeaponSocket))
-	{
-
-		Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon"));
-
-
-		static ConstructorHelpers::FObjectFinder<UStaticMesh> WeaponAsset(TEXT("/Script/Engine.StaticMesh'/Game/Weapon_Pack/Mesh/Weapons/Weapons_Kit/SM_Sword.SM_Sword'"));
-		if (WeaponAsset.Succeeded())
-		{
-			Weapon->SetStaticMesh(WeaponAsset.Object);
-		}
-
-
-		Weapon->SetupAttachment(GetMesh(), WeaponSocket);
-	}*/
 }
 
 void ATFT_TM_CG::PostInitializeComponents()
@@ -88,9 +72,9 @@ void ATFT_TM_CG::SetMesh(FString path)
 void ATFT_TM_CG::AttackA(const FInputActionValue& value)
 {
 	bool isPressed = value.Get<bool>();
-	//auto player = Cast<ATFT_TM_CG>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	
 
-	if (isPressed && !_isAttacking && _animInstanceCG != nullptr)// && player != nullptr)
+	if (isPressed && !_isAttacking && _animInstanceCG != nullptr)
 	{
 		if (auto CGAnimInstance = Cast<UTFT_AnimInstance_CG>(_animInstanceCG))
 		{

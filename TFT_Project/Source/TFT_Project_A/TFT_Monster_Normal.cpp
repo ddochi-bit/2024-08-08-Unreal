@@ -14,6 +14,10 @@
 
 #include "TFT_GameInstance.h"
 #include "TFT_SoundManager.h"
+#include "TFT_Monster_AIController.h"
+
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 #include "Kismet/GameplayStatics.h"
 
@@ -75,25 +79,23 @@ void ATFT_Monster_Normal::BeginPlay()
 	Super::BeginPlay();
 
 	_statCom->SetLevelAndInit(100);
+
+	GetCharacterMovement()->bUseRVOAvoidance = true;
+	GetCharacterMovement()->AvoidanceWeight = 1.0f;
 }
 
 void ATFT_Monster_Normal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 플레이어 캐릭터 가져오기
 	AActor* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	if (Player)
-	{
-		// 플레이어와 AI 캐릭터 간 거리 계산
-		float Distance = FVector::Dist(Player->GetActorLocation(), GetActorLocation());
-
-		// 체력바 위젯이 존재하는지 확인
+	{	
+		float Distance = FVector::Dist(Player->GetActorLocation(), GetActorLocation());	
 		if (_hpbarWidget)
-		{
-			// 특정 거리 내에 있을 경우 체력바 표시, 멀리 있으면 숨김
-			if (Distance <= 600.0f)  // 예: 1000 유닛 이내일 때 체력바 표시
+		{	
+			if (Distance <= 600.0f) 
 			{
 				_hpbarWidget->SetVisibility(true);
 				_hpbarWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
@@ -105,6 +107,8 @@ void ATFT_Monster_Normal::Tick(float DeltaTime)
 			}
 		}
 	}
+	
+	// MaintainDistanceFromOtherAIs();
 }
 
 void ATFT_Monster_Normal::SetMesh(FString path)
@@ -140,7 +144,7 @@ void ATFT_Monster_Normal::AttackHit()
 	FHitResult hitResult;
 	FCollisionQueryParams params(NAME_None, false, this);
 
-	float attackRange = 500.0f;
+	float attackRange = 600.0f;
 	float attackRadius = 100.0f;
 
 	bool bResult = GetWorld()->SweepSingleByChannel
@@ -149,7 +153,7 @@ void ATFT_Monster_Normal::AttackHit()
 		GetActorLocation(),
 		GetActorLocation() + GetActorForwardVector() * attackRange,
 		FQuat::Identity,
-		ECollisionChannel::ECC_GameTraceChannel3,
+		ECollisionChannel::ECC_GameTraceChannel10,
 		FCollisionShape::MakeSphere(attackRadius),
 		params
 	);
@@ -165,8 +169,35 @@ void ATFT_Monster_Normal::AttackHit()
 		FDamageEvent damageEvent;
 		hitResult.GetActor()->TakeDamage(_statCom->GetAttackDamage(), damageEvent, GetController(), this);	
 	}
+}
 
-	// DrawDebugSphere(GetWorld(), center, attackRadius, 12, drawColor, false, 2.0f);
+void ATFT_Monster_Normal::MaintainDistanceFromOtherAIs()
+{
+	TArray<AActor*> OtherAIs;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATFT_Monster_Normal::StaticClass(), OtherAIs);
+
+	for (AActor* Actor : OtherAIs)
+	{
+		ATFT_Monster_Normal* OtherAI = Cast<ATFT_Monster_Normal>(Actor);
+
+		if (OtherAI && OtherAI != this)
+		{
+			FVector TargetLocation = GetActorLocation();
+			float Distance = FVector::Dist(TargetLocation, OtherAI->GetActorLocation());
+
+			if (Distance < 200.0f)  
+			{
+				FVector AvoidDirection = (TargetLocation - OtherAI->GetActorLocation()).GetSafeNormal();
+				TargetLocation += AvoidDirection * FMath::RandRange(50.0f, 100.0f);  
+
+				AAIController* AIController = Cast<AAIController>(GetController());
+				if (AIController)
+				{
+					AIController->MoveToLocation(TargetLocation);
+				}
+			}
+		}
+	}
 }
 
 void ATFT_Monster_Normal::DropItem()

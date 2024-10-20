@@ -106,7 +106,7 @@ void ATFT_Knight::AttackHit()
 		GetActorLocation(),
 		GetActorLocation() + GetActorForwardVector() * attackRange,
 		FQuat::Identity,
-		ECollisionChannel::ECC_GameTraceChannel3,
+		ECollisionChannel::ECC_GameTraceChannel9,
 		FCollisionShape::MakeSphere(attackRadius),
 		params
 	);

@@ -51,13 +51,11 @@ void UTFT_StoreComponent::BeginPlay()
 	SetStoreItem(1);
 	SetStoreItem(10);
 	SetStoreItem(20);
+	SetStoreItem(3);
 
 	SetStoreItem(2);
 
 
-	//_item = GetWorld()->SpawnActor<ATFT_Item>(_itemClass, FVector::ZeroVector, FRotator::ZeroRotator);
-
-	//_items[0] = _item;
 }
 
 
@@ -79,35 +77,19 @@ void UTFT_StoreComponent::PurchaseItem(ATFT_Item* item, int32 index)
 
 void UTFT_StoreComponent::SetStoreItem(int32 lineNum)
 {
-	/*if (_item == nullptr)
-	{
-		_item = GetWorld()->SpawnActor<ATFT_Item>(_itemClass, FVector::ZeroVector, FRotator::ZeroRotator);
-		_item->SetItemid(lineNum);
-	}
 
-	for (int32 i = 0; i < _storeMaxSize; ++i)
-	{
-		if (_items.IsValidIndex(i) && _items[i] == nullptr)
-		{
-			_items[i] = _item;
-			_storeWidget->SetStoreItem(_item, i);
-			return;
-		}
-	}
-	_item = nullptr;*/
-	// 각 호출마다 새로운 아이템을 스폰
 	ATFT_Item* NewItem = GetWorld()->SpawnActor<ATFT_Item>(_itemClass, FVector::ZeroVector, FRotator::ZeroRotator);
 
 	if (NewItem)
 	{
-		NewItem->SetItemid(lineNum);  // 아이템 ID 설정
+		NewItem->SetItemid(lineNum);  
 
 		for (int32 i = 0; i < _storeMaxSize; ++i)
 		{
 			if (_items.IsValidIndex(i) && _items[i] == nullptr)
 			{
-				_items[i] = NewItem;  // 배열에 새로운 아이템 저장
-				_storeWidget->SetStoreItem(NewItem, i);  // UI에 아이템 추가
+				_items[i] = NewItem;  
+				_storeWidget->SetStoreItem(NewItem, i); 
 				NewItem->Disable();
 				return;
 			}

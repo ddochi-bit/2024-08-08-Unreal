@@ -159,22 +159,7 @@ void UTFT_InvenUI::UseItem()
 	}
 	else
 	{
-		/*if (_this_Item->GetItemType() == "Equipment")
-		{
-			UE_LOG(LogTemp, Log, TEXT("Equipment Item Use"));
 
-			_itemEquipmentEvent.Broadcast(_this_Item, this_Index);
-		}
-		else if (_this_Item->GetItemType() == "Utility")
-		{
-			UE_LOG(LogTemp, Log, TEXT("Utility Item Use"));
-			
-		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("not itme Use Event"));
-			return;
-		}*/
 		_itemUesEvent.Broadcast(_this_Item, this_Index);
 
 		SetItemSlot(_emptySlot, this_Index);
@@ -204,7 +189,7 @@ void UTFT_InvenUI::AddUiItem(ATFT_Item* item, int32 index)
 
 void UTFT_InvenUI::SelectSlotItem(int32 index)
 {
-	Store_DropSellTextCheck();
+	//Store_DropSellTextCheck();
 
 	if (_UIsaveiteminfo[index] != nullptr)
 	{
@@ -324,7 +309,9 @@ void UTFT_InvenUI::UIGold(int32 gold)
 
 bool UTFT_InvenUI::Store_DropSellTextCheck()
 {
-	if (GetWorld()->GetFirstPlayerController()->bShowMouseCursor == true)
+	//if (_InvenstoreCom == nullptr) return true;
+
+	if (storeCheke == true)//(GetWorld()->GetFirstPlayerController()->bShowMouseCursor == true)
 	{
 		FString String = FString::Printf(TEXT("Sell"));
 		FText Sell = FText::FromString(String);
@@ -332,7 +319,7 @@ bool UTFT_InvenUI::Store_DropSellTextCheck()
 		TFT_InvenWidget_Drop_Text->SetText(Sell);
 		return false;
 	}
-	else
+	else 
 	{
 		FString String = FString::Printf(TEXT("Drop"));
 		FText Drop = FText::FromString(String);
@@ -341,3 +328,4 @@ bool UTFT_InvenUI::Store_DropSellTextCheck()
 		return true;
 	}
 }
+

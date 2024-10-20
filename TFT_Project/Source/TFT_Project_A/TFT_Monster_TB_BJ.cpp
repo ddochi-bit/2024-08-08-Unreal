@@ -174,7 +174,7 @@ void ATFT_Monster_TB_BJ::AttackHit_Boss()
         GetActorLocation(),
         GetActorLocation() + GetActorForwardVector() * attackRange,
         FQuat::Identity,
-        ECollisionChannel::ECC_GameTraceChannel3,
+        ECollisionChannel::ECC_GameTraceChannel10,
         FCollisionShape::MakeSphere(attackRadius),
         params
     );
@@ -285,7 +285,7 @@ float ATFT_Monster_TB_BJ::TakeDamage(float DamageAmount, FDamageEvent const& Dam
     {
         TotalDamageFromPlayer += ActualDamage;
         TargetPlayer = Player;
-        DebugMessage = FString::Printf(TEXT("Player에게 받은 데미지 %f \n누적데미지: %f"), ActualDamage, TotalDamageFromPlayer);
+        
         MessageKey = 1;
 
         if (AggroComponent)
@@ -297,19 +297,19 @@ float ATFT_Monster_TB_BJ::TakeDamage(float DamageAmount, FDamageEvent const& Dam
     {
         TotalDamageFromKnight += ActualDamage;
         TargetKnight = Knight;
-        DebugMessage = FString::Printf(TEXT("Knight에게 받은 데미지 %f \n누적데미지: %f"), ActualDamage, TotalDamageFromKnight);
+        
         MessageKey = 2;
     }
     else if (ATFT_TeamAI_Archer* Archer = Cast<ATFT_TeamAI_Archer>(DamageCauser))
     {
         TotalDamageFromArcher += ActualDamage;
         TargetArcher = Archer;
-        DebugMessage = FString::Printf(TEXT("Archer에게 받은 데미지 %f \n누적데미지: %f"), ActualDamage, TotalDamageFromArcher);
+        
         MessageKey = 3;
     }
     else
     {
-        DebugMessage = FString::Printf(TEXT("Unknown에게 받은 데미지 %f"), ActualDamage);
+        
         MessageKey = 4;
     }
 

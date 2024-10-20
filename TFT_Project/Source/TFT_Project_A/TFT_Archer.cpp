@@ -135,7 +135,7 @@ void ATFT_Archer::AttackHit_ADC()
 		start,
 		end,
 		quat,
-		ECollisionChannel::ECC_GameTraceChannel3,
+		ECollisionChannel::ECC_GameTraceChannel9,
 		FCollisionShape::MakeCapsule(attackRadius, attackRange * 0.5f),
 		params
 	);
@@ -152,7 +152,7 @@ void ATFT_Archer::AttackHit_ADC()
 		hitResult.GetActor()->TakeDamage(_statCom->GetAttackDamage(), damageEvent, GetController(), this);
 		_hitPoint = hitResult.ImpactPoint;
 
-		// TODO
+		
 		_projectile->SetActorHiddenInGame(true);
 
 		EffectManager->Play("N_Archer_Attack_Hit", 1, _hitPoint);

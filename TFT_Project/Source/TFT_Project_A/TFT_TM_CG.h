@@ -24,6 +24,5 @@ public:
 
 	void AttackA(const FInputActionValue& value) override;
 private:
-	/*UPROPERTY(VisibleAnywhere, Category = "Weapon")
-		UStaticMeshComponent* Weapon;*/
+
 };

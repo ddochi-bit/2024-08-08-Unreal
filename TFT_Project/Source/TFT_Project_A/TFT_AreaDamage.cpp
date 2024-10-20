@@ -43,7 +43,7 @@ void ATFT_AreaDamage::ApplyDamage()
     CollisionShape.SetSphere(DamageRadius);
 
    
-    GetWorld()->SweepMultiByChannel(HitResults, Location, Location, FQuat::Identity, ECC_GameTraceChannel1, CollisionShape);
+    GetWorld()->SweepMultiByChannel(HitResults, Location, Location, FQuat::Identity, ECC_GameTraceChannel3, CollisionShape);
 
     for (const FHitResult& Hit : HitResults)
     {

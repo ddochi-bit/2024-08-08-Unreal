@@ -6,9 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "UTFT_PartyHPWidget.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class TFT_PROJECT_A_API UUTFT_PartyHPWidget : public UUserWidget
 {
@@ -21,6 +19,9 @@ public:
     void UpdateKnightHPBar(int32 Index, float HPRatio);  
 
     class UProgressBar* GetHPBarByIndex(int32 Index);
+
+    bool IsOpened();
+
 private:
    
     UPROPERTY(meta = (BindWidget))

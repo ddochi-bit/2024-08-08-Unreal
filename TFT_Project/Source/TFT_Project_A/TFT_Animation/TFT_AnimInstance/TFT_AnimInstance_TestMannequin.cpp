@@ -26,6 +26,12 @@ UTFT_AnimInstance_TestMannequin::UTFT_AnimInstance_TestMannequin()
 	{
 		_attackMontage = am.Object;
 	}
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> am2
+	(TEXT("/Script/Engine.AnimMontage'/Game/BluePrint/animation/TestMannequin/TM_2hand/CG_Montage_NomalAttack.CG_Montage_NomalAttack'"));
+	if (am2.Succeeded())
+	{
+		_attackMontage2hand = am2.Object;
+	}
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> SprintMontageObj(TEXT("/Script/Engine.AnimMontage'/Game/BluePrint/animation/TestMannequin/TFT_TM_Running.TFT_TM_Running'"));
 	if (SprintMontageObj.Succeeded())
 	{
@@ -54,6 +60,8 @@ void UTFT_AnimInstance_TestMannequin::NativeUpdateAnimation(float DeltaSeconds)
 
 void UTFT_AnimInstance_TestMannequin::JumpToSection(int32 sectionIndex)
 {
+	FName sectionName = FName(*FString::Printf(TEXT("Attack%d"), sectionIndex));
+	Montage_JumpToSection(sectionName);
 }
 
 void UTFT_AnimInstance_TestMannequin::PlayE_SkillMontage()
@@ -80,9 +88,27 @@ void UTFT_AnimInstance_TestMannequin::PlayAttackMontage()
 	}
 }
 
+void UTFT_AnimInstance_TestMannequin::PlayAttackMontage2Hend()
+{
+	if (!Montage_IsPlaying(_attackMontage2hand))
+	{
+		Montage_Play(_attackMontage2hand);
+	}
+}
+
 void UTFT_AnimInstance_TestMannequin::AnimNotify_DashEnd()
 {
 	_dashEndDelegate.Broadcast();
+}
+
+void UTFT_AnimInstance_TestMannequin::AnimNotify_AttackStart()
+{
+	_attackStartDelegate.Broadcast();
+}
+
+void UTFT_AnimInstance_TestMannequin::AnimNotify_AttackHit()
+{
+	_attackHitDelegate.Broadcast();
 }
 
 void UTFT_AnimInstance_TestMannequin::AnimNotify_AttackHit_Q()

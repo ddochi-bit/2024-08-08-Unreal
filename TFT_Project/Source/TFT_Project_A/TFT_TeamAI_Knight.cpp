@@ -50,19 +50,19 @@ void ATFT_TeamAI_Knight::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// �÷��̾� ĳ���� ��������
+	
 	AActor* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	if (Player)
 	{
-		// �÷��̾�� AI ĳ���� �� �Ÿ� ���
+	
 		float Distance = FVector::Dist(Player->GetActorLocation(), GetActorLocation());
 
-		// ü�¹� ������ �����ϴ��� Ȯ��
+		
 		if (_hpbarWidget)
 		{
-			// Ư�� �Ÿ� ���� ���� ��� ü�¹� ǥ��, �ָ� ������ ����
-			if (Distance <= 700.0f)  // ��: 1000 ���� �̳��� �� ü�¹� ǥ��
+			
+			if (Distance <= 700.0f)  
 			{
 				_hpbarWidget->SetVisibility(false);
 				_hpbarWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
@@ -113,17 +113,17 @@ void ATFT_TeamAI_Knight::BeginPlay()
 
 	if (Index == INDEX_NONE)
 	{
-		Index = 0;  // 나이트에 대한 기본 인덱스 값 설정
+		Index = 0;  
 	}
 
-	// 현재 HP 비율을 UIManager에 전달
+	
 	if (_statCom)
 	{
 		float initialHPRatio = _statCom->HpRatio();
 		auto* UIManager = Cast<ATFT_UIManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATFT_UIManager::StaticClass()));
 		if (UIManager)
 		{
-			UIManager->OnKnightHPChanged(initialHPRatio, Index);  // 나이트의 Index 값을 넘김
+			UIManager->OnKnightHPChanged(initialHPRatio, Index);
 		}
 	}
 
@@ -175,7 +175,7 @@ void ATFT_TeamAI_Knight::AttackHit()
 		GetActorLocation(),
 		GetActorLocation() + GetActorForwardVector() * attackRange,
 		FQuat::Identity,
-		ECollisionChannel::ECC_GameTraceChannel3,
+		ECollisionChannel::ECC_GameTraceChannel9,
 		FCollisionShape::MakeSphere(attackRadius),
 		params
 	);

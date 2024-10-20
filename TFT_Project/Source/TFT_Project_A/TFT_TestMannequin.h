@@ -6,9 +6,7 @@
 #include "TFT_Player.h"
 #include "TFT_TestMannequin.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class TFT_PROJECT_A_API ATFT_TestMannequin : public ATFT_Player
 {
@@ -39,6 +37,12 @@ public:
 
 	void SetBlockInputOnDash_False() { bBlockInputOnDash = false; }
 
+	virtual void AttackStart() override;
+
+	UFUNCTION()
+	void AttackHit();
+
+	UFUNCTION()
 	void AttackHit_Q();
 
 	virtual void FootStep() override;

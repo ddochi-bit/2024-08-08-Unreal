@@ -6,9 +6,7 @@
 #include "TFT_Player.h"
 #include "TFT_TM_DH.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class TFT_PROJECT_A_API ATFT_TM_DH : public ATFT_Player
 {

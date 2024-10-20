@@ -37,11 +37,21 @@ void UTFT_BT_Monster_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
  
     if (currentTarget)
     {
+        if (ATFT_Creature* targetCreature = Cast<ATFT_Creature>(currentTarget))
+        {
+            if (targetCreature->GetCurHp() <= 0)
+            {
+                OwnerComp.GetBlackboardComponent()->SetValueAsObject(FName(TEXT("Target")), nullptr);
+                return;
+            }
+        }
+
+
         if (AActor* targetActor = Cast<AActor>(currentTarget))
         {
             if (!targetActor->IsValidLowLevel() || !targetActor->IsActorBeingDestroyed())
             {
-     
+       
                 return;
             }
         }
@@ -56,7 +66,7 @@ void UTFT_BT_Monster_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uin
         overlapResult,
         center,
         FQuat::Identity,
-        ECollisionChannel::ECC_GameTraceChannel2,
+        ECollisionChannel::ECC_GameTraceChannel4,
         FCollisionShape::MakeSphere(searchRadius),
         qparams
     );

@@ -9,8 +9,6 @@
 
 #include "TFT_Monster_TB_BJ.generated.h"
 
-class ATFT_AreaDamage;
-
 UCLASS()
 class TFT_PROJECT_A_API ATFT_Monster_TB_BJ : public ATFT_Monster
 {

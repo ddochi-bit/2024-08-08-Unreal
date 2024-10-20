@@ -41,3 +41,8 @@ UProgressBar* UUTFT_PartyHPWidget::GetHPBarByIndex(int32 Index)
     }
 }
 
+bool UUTFT_PartyHPWidget::IsOpened()
+{
+    return this->IsInViewport();
+}
+

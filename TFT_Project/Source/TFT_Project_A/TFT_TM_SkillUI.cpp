@@ -11,7 +11,7 @@ bool UTFT_TM_SkillUI::Initialize()
 	bool result = Super::Initialize();
 
 	auto array = SkillUI_HB->GetAllChildren();
-	// int32 slotIndex = 0;
+	
 
 	for (auto child : array)
 	{
@@ -23,7 +23,7 @@ bool UTFT_TM_SkillUI::Initialize()
 		}	
 	}
 
-	// temp
+	
 	for (int32 i = 0; i < _skillSlots.Num(); i++)
 	{
 		if (i == 0) _skillSlots[i]->SetSlotNumText("Q");

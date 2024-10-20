@@ -6,9 +6,6 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "UTFT_AnimNotify_PlayEffect.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class TFT_PROJECT_A_API UUTFT_AnimNotify_PlayEffect : public UAnimNotify
 {

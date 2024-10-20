@@ -54,7 +54,7 @@ private:
 
 
 public:
-	// Delegate
+	
 	InvenUIOpen _invenOpenDelegate;
 
 	ItemAdded _itemAddedEvent;

@@ -21,7 +21,9 @@ public:
 	virtual bool Initialize() override;
 
 	UFUNCTION()
-	void StoreOpenClose();
+	void StoreOpen();
+	UFUNCTION()
+	void StoreClose();
 
 	UFUNCTION()
 	void PurchaseItem();
@@ -59,6 +61,8 @@ public:
 	void UISetItemName(int32 index);
 	void UISetItemMiniInfo(int32 index);
 	void UISetItemPrice(int32 index);
+
+	bool GetOpenCheke() { return bIsOpen; }
 
 	FPurchaseDelegateOneParam _purchaseDelegateOneParam;
 	ItemBuyEvent _ItemBuy;

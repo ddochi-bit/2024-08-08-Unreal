@@ -6,10 +6,9 @@
 #include "TFT_TeamAI_Knight.h"
 #include "TFT_TeamAI_Archer.h"
 #include "TFT_Player.h"
+#include "TimerManager.h"
 
 #include "TFT_Monster_Boss.generated.h"
-
-class ATFT_AreaDamage;
 
 UCLASS()
 class TFT_PROJECT_A_API ATFT_Monster_Boss : public ATFT_Monster
@@ -26,11 +25,10 @@ public:
     virtual void SetMesh(FString path) override;
     virtual void Attack_AI() override;
 
-    UFUNCTION()
-    void ExecuteSkillMontage();
+    void SpawnParticleEffect();
+    void StartParticleSpawnDelay();
 
     virtual void AttackStart() override;
-    void AttackEnd();
 
     UFUNCTION()
     void AttackHit_Boss();
@@ -51,14 +49,6 @@ public:
 
     void SetAggroUI();
 
-    UFUNCTION()
-    void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
-private:
-    FTimerHandle SkillTimerHandle;
-    void PlayNextMontage();
-
-    bool bIsMontagePlaying = false;
 
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
@@ -74,4 +64,8 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
     UCapsuleComponent* WeaponCollisionCapsule_L;
 
+    UPROPERTY(EditAnywhere)
+    UParticleSystem* SmashEffect;
+
+    FTimerHandle ParticleSpawnTimerHandle;
 };

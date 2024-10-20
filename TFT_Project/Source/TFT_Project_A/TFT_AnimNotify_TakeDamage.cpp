@@ -33,14 +33,14 @@ void UTFT_AnimNotify_TakeDamage::DealDamage(USkeletalMeshComponent* MeshComp)
         float attackRange = 500.0f;   
         float attackRadius = 100.0f;  
 
-        // 충돌 감지
+       
         bool bResult = Character->GetWorld()->SweepSingleByChannel
         (
             hitResult,
             Character->GetActorLocation(),
             Character->GetActorLocation() + Character->GetActorForwardVector() * attackRange,
             FQuat::Identity,
-            ECollisionChannel::ECC_GameTraceChannel3,
+            ECollisionChannel::ECC_GameTraceChannel9,
             FCollisionShape::MakeSphere(attackRadius),
             params
         );
@@ -58,7 +58,7 @@ void UTFT_AnimNotify_TakeDamage::DealDamage(USkeletalMeshComponent* MeshComp)
             hitResult.GetActor()->TakeDamage(DamageAmount, damageEvent, Character->GetController(), Character);
         }
 
-        // 디버그 스피어로 충돌 범위 시각화
+        
         DrawDebugSphere(Character->GetWorld(), center, attackRadius, 20, drawColor, false, 2.0f);
     }
 }

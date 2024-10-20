@@ -73,14 +73,13 @@ void ATFT_UIManager::BeginPlay()
 	OpenWidget(UIType::Inventory);
 	CloseWidget(UIType::Inventory);
 
-	OpenWidget(UIType::CrossHair);
+	// OpenWidget(UIType::CrossHair);
 	OpenWidget(UIType::SkillUI);
 
 	OpenWidget(UIType::EquipmentUI);
 	CloseWidget(UIType::EquipmentUI);
 
-	// OpenWidget(UIType::AggroUI);
-	OpenWidget(UIType::PartyHPUI);
+	// OpenWidget(UIType::PartyHPUI);
 
 	_invenOpenEvent.AddUObject(this, &ATFT_UIManager::OpenInvenUIA);
 	_invenWidget->_CloseInvenBtn.AddUObject(this, &ATFT_UIManager::CloseInvenBtn);
@@ -122,6 +121,8 @@ void ATFT_UIManager::OpenWidget(UIType type)
 
 	_widgets[typeNum]->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	_widgets[typeNum]->AddToViewport(typeNum);
+
+	
 }
 
 void ATFT_UIManager::CloseWidget(UIType type)
@@ -133,6 +134,8 @@ void ATFT_UIManager::CloseWidget(UIType type)
 
 	_widgets[typeNum]->SetVisibility(ESlateVisibility::Hidden);
 	_widgets[typeNum]->RemoveFromViewport();
+
+	
 }
 
 void ATFT_UIManager::CloseAll()
@@ -151,12 +154,14 @@ void ATFT_UIManager::OpenInvenUIA()
 		UE_LOG(LogTemp, Log, TEXT("ainven : open"));
 		_UIInvenarea = true;
 		OpenWidget(UIType::Inventory);
+		MouseUnLock(UIType::Inventory);
 	}
 	else if (_UIInvenarea == true)
 	{
 		UE_LOG(LogTemp, Log, TEXT("inven : close"));
 		_UIInvenarea = false;
 		CloseWidget(UIType::Inventory);
+		MouseLock(UIType::Inventory);
 	}
 }
 
@@ -165,6 +170,7 @@ void ATFT_UIManager::CloseInvenBtn()
 	UE_LOG(LogTemp, Log, TEXT("inven : close"));
 	_UIInvenarea = false;
 	CloseWidget(UIType::Inventory);
+	MouseLock(UIType::Inventory);
 }
 
 void ATFT_UIManager::OnOffEquipmentUIA()
@@ -174,6 +180,7 @@ void ATFT_UIManager::OnOffEquipmentUIA()
 		UE_LOG(LogTemp, Log, TEXT("Equipment : open"));
 		_UIEquipmentarea = true;
 		OpenWidget(UIType::EquipmentUI);
+		MouseUnLock(UIType::EquipmentUI);
 	}
 	else if (_UIEquipmentarea == true)
 	{
@@ -181,6 +188,7 @@ void ATFT_UIManager::OnOffEquipmentUIA()
 		_UIEquipmentarea = false;
 		_EquipmentCloseResetEvent.Broadcast();
 		CloseWidget(UIType::EquipmentUI);
+		MouseLock(UIType::EquipmentUI);
 	}
 }
 
@@ -190,6 +198,7 @@ void ATFT_UIManager::CloseEquipmentUIA()
 	_UIEquipmentarea = false;
 	_EquipmentCloseResetEvent.Broadcast();
 	CloseWidget(UIType::EquipmentUI);
+	MouseLock(UIType::EquipmentUI);
 }
 
 void ATFT_UIManager::BindHPUpdateToAI(const TArray<class ATFT_TeamAI_Archer*>& ArcherAIs, const TArray<class ATFT_TeamAI_Knight*>& KnightAIs)
@@ -228,6 +237,38 @@ void ATFT_UIManager::OnKnightHPChanged(float NewHPRatio, int32 Index)
 	if (_partyHPWidget)
 	{
 		_partyHPWidget->UpdateKnightHPBar(Index, NewHPRatio);
+	}
+}
+
+void ATFT_UIManager::MouseUnLock(UIType type)
+{
+
+	int32 typeNum = (int32)type;
+	if (_widgets.Num() <= typeNum)
+		return;
+
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		FInputModeGameAndUI InputMode;
+		InputMode.SetWidgetToFocus(_widgets[typeNum]->TakeWidget());  // 포커스를 해당 UI로 설정
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);  // 마우스 잠금 해제
+		PC->SetInputMode(InputMode);  // 입력 모드 변경
+		PC->bShowMouseCursor = true;  // 마우스 커서 표시
+	}
+}
+
+void ATFT_UIManager::MouseLock(UIType type)
+{
+	int32 typeNum = (int32)type;
+	if (_widgets.Num() <= typeNum)
+		return;
+
+	// 마우스를 다시 게임 모드로 전환 (UI가 닫힌 후)
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);  // 입력 모드를 게임으로 전환
+		PC->bShowMouseCursor = false;  // 마우스 커서를 숨김
 	}
 }
 

@@ -47,19 +47,19 @@ void ATFT_TeamAI_Archer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// �÷��̾� ĳ���� ��������
+	
 	AActor* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	if (Player)
 	{
-		// �÷��̾�� AI ĳ���� �� �Ÿ� ���
+		
 		float Distance = FVector::Dist(Player->GetActorLocation(), GetActorLocation());
 
-		// ü�¹� ������ �����ϴ��� Ȯ��
+		
 		if (_hpbarWidget)
 		{
-			// Ư�� �Ÿ� ���� ���� ��� ü�¹� ǥ��, �ָ� ������ ����
-			if (Distance <= 700.0f)  // ��: 1000 ���� �̳��� �� ü�¹� ǥ��
+			
+			if (Distance <= 700.0f)  
 			{
 				_hpbarWidget->SetVisibility(false);
 				_hpbarWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);;
@@ -104,6 +104,8 @@ void ATFT_TeamAI_Archer::BeginPlay()
 	Super::BeginPlay();
 
 	Init();
+
+	_statCom->SetLevelAndInit(21);
 
 	if (Index == INDEX_NONE)
 	{
@@ -177,7 +179,7 @@ void ATFT_TeamAI_Archer::AttackHit()
 		start,
 		end,
 		quat,
-		ECollisionChannel::ECC_GameTraceChannel3,
+		ECollisionChannel::ECC_GameTraceChannel9,
 		FCollisionShape::MakeCapsule(attackRadius, attackRange * 0.5f),
 		params
 	);

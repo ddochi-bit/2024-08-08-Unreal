@@ -9,6 +9,8 @@
 #include "TFT_Archer.h"
 #include "TFT_PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+
 
 #include "TFT_GameInstance.h"
 #include "TFT_SoundManager.h"
@@ -113,8 +115,14 @@ void ATFT_GameModeBase::PostInitializeComponents()
 void ATFT_GameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
-
     
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        FInputModeUIOnly InputMode;
+        InputMode.SetWidgetToFocus(JobSelectionWidgetInstance->TakeWidget());
+        PC->SetInputMode(InputMode);
+        PC->bShowMouseCursor = true;
+    }
 }
 
 void ATFT_GameModeBase::SetPlayerKnight()
@@ -131,6 +139,8 @@ void ATFT_GameModeBase::SetPlayerKnight()
     GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
 
     SoundManager->Play("Knight_Choice", location);
+
+    MouseLock();
 }
 
 void ATFT_GameModeBase::SetPlayerArcher()
@@ -147,6 +157,8 @@ void ATFT_GameModeBase::SetPlayerArcher()
     GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
 
     SoundManager->Play("Archer_Choice", location);
+
+    MouseLock();
 }
 
 void ATFT_GameModeBase::SetPlayerDH()
@@ -161,6 +173,8 @@ void ATFT_GameModeBase::SetPlayerDH()
     GetWorld()->GetFirstPlayerController()->UnPossess();
     GetWorld()->GetFirstPlayerController()->Possess(player);
     GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+
+    MouseLock();
 }
 
 void ATFT_GameModeBase::SetPlayerCG()
@@ -175,6 +189,8 @@ void ATFT_GameModeBase::SetPlayerCG()
     GetWorld()->GetFirstPlayerController()->UnPossess();
     GetWorld()->GetFirstPlayerController()->Possess(player);
     GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+
+    MouseLock();
 }
 
 void ATFT_GameModeBase::SetPlayerBJ()
@@ -189,6 +205,8 @@ void ATFT_GameModeBase::SetPlayerBJ()
     GetWorld()->GetFirstPlayerController()->UnPossess();
     GetWorld()->GetFirstPlayerController()->Possess(player);
     GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+
+    MouseLock();
 }
 
 void ATFT_GameModeBase::SetPlayerIY()
@@ -203,6 +221,8 @@ void ATFT_GameModeBase::SetPlayerIY()
     GetWorld()->GetFirstPlayerController()->UnPossess();
     GetWorld()->GetFirstPlayerController()->Possess(player);
     GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+
+    MouseLock();
 }
 
 void ATFT_GameModeBase::SetPlayerTest()
@@ -217,4 +237,16 @@ void ATFT_GameModeBase::SetPlayerTest()
     GetWorld()->GetFirstPlayerController()->UnPossess();
     GetWorld()->GetFirstPlayerController()->Possess(player);
     GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+
+    MouseLock();
+}
+
+void ATFT_GameModeBase::MouseLock()
+{
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        FInputModeGameOnly InputMode;
+        PC->SetInputMode(InputMode);  // 입력 모드를 게임으로 전환
+        PC->bShowMouseCursor = false;  // 마우스 커서를 숨김
+    }
 }
