@@ -24,10 +24,29 @@ public:
 	UFUNCTION()
 	void SetPlayerArcher();
 
+	UFUNCTION()
+	void SetPlayerDH();
+	UFUNCTION()
+	void SetPlayerCG();
+	UFUNCTION()
+	void SetPlayerBJ();
+	UFUNCTION()
+	void SetPlayerIY();
+
+	UFUNCTION()
+	void SetPlayerTest();
+
 private:
 	UPROPERTY()
 	class UTFT_JobChoice* JobSelectionWidgetInstance;
 
 	TSubclassOf<APawn> _knight;
 	TSubclassOf<APawn> _archer;
+
+	TSubclassOf<APawn> _dh;
+	TSubclassOf<APawn> _cg;
+	TSubclassOf<APawn> _bj;
+	TSubclassOf<APawn> _iy;
+
+	TSubclassOf<APawn> _testM;
 };

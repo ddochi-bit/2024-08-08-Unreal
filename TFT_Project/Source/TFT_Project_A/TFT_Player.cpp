@@ -4,12 +4,11 @@
 #include "TFT_Player.h"
 #include "TFT_Creature.h"
 #include "TFT_Knight.h"
+#include "TFT_Monster.h"
 #include "Components/CapsuleComponent.h"
-
 
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -20,10 +19,14 @@
 #include "TFT_Effect_Manager.h"
 #include "TFT_InvenUI.h"
 #include "TFT_Item.h"
-#include "TFT_Effect_Manager.h"
+#include "TFT_Equipment_Window.h"
+#include "TFT_SoundManager.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "TimerManager.h"
+#include "Engine/DamageEvents.h"
+
+#include "TFT_TM_SkillUI.h"
 
 ATFT_Player::ATFT_Player()
 {
@@ -38,18 +41,22 @@ ATFT_Player::ATFT_Player()
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Pawn"));
 
 	_statCom->SetExp(0);
-
 }
 
 void ATFT_Player::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_invenUIInstance = UIMANAGER->GetInvenUI();
-
-	_invenCom->_itemAddedEvent.AddUObject(this, &ATFT_Player::AddItemHendle);
-	_invenCom->_GoldChangeEvnet.AddUObject(this, &ATFT_Player::UIGold);
-	UIMANAGER->GetInvenUI()->_SlotItemEvent.AddUObject(this, &ATFT_Player::DropItemPlayer);
+	if (_invenCom != nullptr)
+	{
+		_invenCom->_itemAddedEvent.AddUObject(this, &ATFT_Player::AddItemHendle);
+		_invenCom->_GoldChangeEvnet.AddUObject(this, &ATFT_Player::UIGold);
+		UIMANAGER->_EquipmentCloseResetEvent.AddUObject(this, &ATFT_Player::CloseResetEquipment);
+		UIMANAGER->GetInvenUI()->_SlotItemEvent.AddUObject(this, &ATFT_Player::DropItemPlayer);
+		UIMANAGER->GetInvenUI()->_itemSellEvent.AddUObject(this, &ATFT_Player::SellItemPlayer);
+		UIMANAGER->GetInvenUI()->_itemUesEvent.AddUObject(this, &ATFT_Player::UseItemPlayer);
+		UIMANAGER->GetEquipmentUI()->_ItemChangeEvent.AddUObject(this, &ATFT_Player::ChangeEquipment);
+	}
 }
 
 void ATFT_Player::PostInitializeComponents()
@@ -73,31 +80,54 @@ void ATFT_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		
 		EnhancedInputComponent->BindAction(_moveAction, ETriggerEvent::Triggered, this, &ATFT_Player::Move);
-
-	
+		
 		EnhancedInputComponent->BindAction(_lookAction, ETriggerEvent::Triggered, this, &ATFT_Player::Look);
-
 	
 		EnhancedInputComponent->BindAction(_jumpAction, ETriggerEvent::Started, this, &ATFT_Player::JumpA);
-
 	
+		EnhancedInputComponent->BindAction(_dashAction, ETriggerEvent::Started, this, &ATFT_Player::Dash);
+
+		EnhancedInputComponent->BindAction(_doubleTapDash_W_Action, ETriggerEvent::Triggered, this, &ATFT_Player::DoubleTapDash_Front);
+		EnhancedInputComponent->BindAction(_doubleTapDash_A_Action, ETriggerEvent::Triggered, this, &ATFT_Player::DoubleTapDash_Left);
+		EnhancedInputComponent->BindAction(_doubleTapDash_S_Action, ETriggerEvent::Triggered, this, &ATFT_Player::DoubleTapDash_Back);
+		EnhancedInputComponent->BindAction(_doubleTapDash_D_Action, ETriggerEvent::Triggered, this, &ATFT_Player::DoubleTapDash_Right);
+
 		EnhancedInputComponent->BindAction(_attackAction, ETriggerEvent::Started, this, &ATFT_Player::AttackA);
 
-	
 		EnhancedInputComponent->BindAction(_invenOpenAction, ETriggerEvent::Started, this, &ATFT_Player::InvenopenA);
 
+		EnhancedInputComponent->BindAction(_EquipmentAction, ETriggerEvent::Started, this, &ATFT_Player::EquipmentA);
 
 		EnhancedInputComponent->BindAction(_skillAction, ETriggerEvent::Started, this, &ATFT_Player::UseSkill);
+
+		EnhancedInputComponent->BindAction(_playESkillAction, ETriggerEvent::Started, this, &ATFT_Player::PlayE_Skill);
+
+		EnhancedInputComponent->BindAction(_playQSkillAction, ETriggerEvent::Started, this, &ATFT_Player::PlayQ_Skill);
+
+		EnhancedInputComponent->BindAction(_playAttackAction, ETriggerEvent::Started, this, &ATFT_Player::PlayAttack);
+
+		EnhancedInputComponent->BindAction(_rollingAction, ETriggerEvent::Started, this, &ATFT_Player::Rolling);
+
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ATFT_Player::StartSprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATFT_Player::StopSprint);
 	}
 }
 
 void ATFT_Player::Interact(ATFT_Item* item)
 {
-	UE_LOG(LogTemp, Log, TEXT("Player Interact With NPC!"));
+	//UE_LOG(LogTemp, Log, TEXT("Player Interact With NPC!"));
 
-	AddItemPlayer(item);
+	if (_invenCom != nullptr && _invenCom->GetPlayerGold() > item->GetItemGold())
+	{
+		UE_LOG(LogTemp, Log, TEXT("Item Buy Succsess"));
+		_invenCom->AddPlayerGold(-item->GetItemGold());
+		AddItemPlayer(item);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("your gold is lacking "));
+	}
 }
 
 void ATFT_Player::LevelUp()
@@ -107,7 +137,11 @@ void ATFT_Player::LevelUp()
 
 void ATFT_Player::Move(const FInputActionValue& value)
 {
+	if (GetCurHp() <= 0) return;
+
 	FVector2D MovementVector = value.Get<FVector2D>();
+
+	if (bBlockInputOnDash) return;
 
 	if (Controller != nullptr)
 	{
@@ -121,6 +155,8 @@ void ATFT_Player::Move(const FInputActionValue& value)
 
 void ATFT_Player::Look(const FInputActionValue& value)
 {
+	if (GetCurHp() <= 0) return;
+
 	FVector2D LookAxisVector = value.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -132,7 +168,11 @@ void ATFT_Player::Look(const FInputActionValue& value)
 
 void ATFT_Player::JumpA(const FInputActionValue& value)
 {
+	if (GetCurHp() <= 0) return;
+
 	bool isPressed = value.Get<bool>();
+
+	if (bBlockInputOnDash) return;
 
 	if (isPressed)
 	{
@@ -143,6 +183,8 @@ void ATFT_Player::JumpA(const FInputActionValue& value)
 
 void ATFT_Player::AttackA(const FInputActionValue& value)
 {
+	if (GetCurHp() <= 0) return;
+
 	bool isPressed = value.Get<bool>();
 
 	auto player = Cast<ATFT_Knight>(GetWorld()->GetFirstPlayerController()->GetPawn());
@@ -179,14 +221,34 @@ void ATFT_Player::AttackA(const FInputActionValue& value)
 		return;
 	}
 
+	if (isPressed && !_isAttacking && _animInstanceBJ != nullptr)
+	{
+		if (auto testAnimInstance = Cast<UTFT_AnimInstance_BJ>(_animInstanceBJ))
+		{
+			testAnimInstance->PlayAttackMontage();
+			_isAttacking = true;
+
+			_curAttackIndex %= 3;
+			_curAttackIndex++;
+
+			testAnimInstance->JumpToSection(_curAttackIndex);
+		}
+
+		return;
+	}
+
 }
 
 void ATFT_Player::InvenopenA(const FInputActionValue& value)
 {
 	UIMANAGER->GetInvenUI()->UIGold(_invenCom->GetPlayerGold());
 
-
 	UIMANAGER->_invenOpenEvent.Broadcast();
+}
+
+void ATFT_Player::EquipmentA(const FInputActionValue& value)
+{
+	UIMANAGER->_EquipmentOpenEvent.Broadcast();
 }
 
 void ATFT_Player::UseSkill(const FInputActionValue& value)
@@ -195,21 +257,80 @@ void ATFT_Player::UseSkill(const FInputActionValue& value)
 
 	if (isPressed)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Skill activated"));
+		if (SoundManager)
+		{
+			SoundManager->Play("Use_Skill", GetActorLocation());
+		}
 
-		FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 100.0f; 
-		FRotator SpawnRotation = GetActorRotation(); 
+		FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 300.0f;
+		FRotator SpawnRotation = GetActorRotation();
 		EffectManager->Play(TEXT("Fireball"), 1, SpawnLocation, SpawnRotation);
+		
+		FVector CollisionLocation = SpawnLocation; 
+		float CollisionRadius = 200.0f; 
+	
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			
+			FCollisionShape SkillCollision = FCollisionShape::MakeSphere(CollisionRadius);
+
+		
+			TArray<FHitResult> HitResults;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(this); 
+			bool bHit = World->SweepMultiByChannel(
+				HitResults,
+				CollisionLocation,
+				CollisionLocation,
+				FQuat::Identity,
+				ECC_Pawn, 
+				SkillCollision,
+				Params
+			);
+
+			if (bHit)
+			{
+				for (FHitResult Hit : HitResults)
+				{
+					AActor* HitActor = Hit.GetActor();
+					if (HitActor && HitActor->IsA(ATFT_Monster::StaticClass()))
+					{
+						
+						float DamageAmount = 50.0f; 
+						FDamageEvent DamageEvent;
+						HitActor->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+
+						UE_LOG(LogTemp, Warning, TEXT("Hit Monster: %s, Damage: %f"), *HitActor->GetName(), DamageAmount);
+					}
+				}
+			}
+		}
 
 		UE_LOG(LogTemp, Warning, TEXT("Effect should be visible at location: %s"), *SpawnLocation.ToString());
 	}
 }
 
+void ATFT_Player::Rolling()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	AnimInstance->Montage_Play(_rollingMontage);
+}
+
+void ATFT_Player::StartSprint()
+{
+}
+
+void ATFT_Player::StopSprint()
+{
+}
+
 void ATFT_Player::AddItemPlayer(ATFT_Item* item) 
 {
-	_invenCom->AddItem(item);
+	if(_invenCom != nullptr) _invenCom->AddItem(item);
+	
 
-	_statCom->AddAttackDamage(item->GetItemAttackDamage());
+	if (_statCom != nullptr) _statCom->AddAttackDamage(item->GetItemAttackDamage());
 }
 
 void ATFT_Player::AddItemHendle(ATFT_Item* item, int32 index) 
@@ -219,12 +340,51 @@ void ATFT_Player::AddItemHendle(ATFT_Item* item, int32 index)
 
 void ATFT_Player::DropItemPlayer(ATFT_Item* item, int32 index)
 {
-	_invenCom->DropItem(index);
+	if (_invenCom != nullptr)  _invenCom->DropItem(index);
 
-	_statCom->AddAttackDamage(-item->GetItemAttackDamage());
+	if (_statCom != nullptr) _statCom->AddAttackDamage(-item->GetItemAttackDamage());
+}
+
+void ATFT_Player::SellItemPlayer(ATFT_Item* item, int32 index)
+{
+	if (_invenCom != nullptr)  _invenCom->SellItem(index);
+
+	if (_statCom != nullptr) _statCom->AddAttackDamage(-item->GetItemAttackDamage());
+}
+
+void ATFT_Player::UseItemPlayer(ATFT_Item* item, int32 index)// E_1
+{
+	if (item->GetItemType() == "Equipment")
+	{
+		UE_LOG(LogTemp, Log, TEXT("Equipment Item Use"));
+
+		UIMANAGER->GetEquipmentUI()->Set_Equipment(item);
+		_invenCom->UseItem(index);
+	}
+	else if (item->GetItemType() == "Utility")
+	{
+		UE_LOG(LogTemp, Log, TEXT("Utility Item Use"));
+
+		_invenCom->UseItem(index);
+	}
+}
+
+void ATFT_Player::UseItemPlayer_Equipment(ATFT_Item* item, int32 index)// E_2
+{
+
 }
 
 void ATFT_Player::UIGold(int32 gold)
 {
 	UIMANAGER->GetInvenUI()->UIGold(gold);
+}
+
+void ATFT_Player::ChangeEquipment(ATFT_Item* item)
+{
+	_invenCom->AddItem(item);
+}
+
+void ATFT_Player::CloseResetEquipment()
+{
+	UIMANAGER->GetEquipmentUI()->ResetChoice();
 }

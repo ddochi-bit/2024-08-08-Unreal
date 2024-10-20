@@ -22,11 +22,13 @@ ATFT_Npc_store::ATFT_Npc_store()
     TriggerBox->OnComponentEndOverlap.AddDynamic(this, &ATFT_Npc_store::OnOverlapEnd);
 
     _storeCom = CreateDefaultSubobject<UTFT_StoreComponent>(TEXT("Store_Com"));
+
 }
 
 void ATFT_Npc_store::BeginPlay()
 {
     Super::BeginPlay();
+
 }
 
 void ATFT_Npc_store::Tick(float DeltaTime)

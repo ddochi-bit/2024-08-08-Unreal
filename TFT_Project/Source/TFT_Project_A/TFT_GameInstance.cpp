@@ -17,8 +17,6 @@ UTFT_GameInstance::UTFT_GameInstance()
 		_statTable = dataTable.Object;
 		UE_LOG(LogTemp, Error, TEXT("StatTable Load Complete"));
 	}
-
-	
 }
 
 void UTFT_GameInstance::Init()

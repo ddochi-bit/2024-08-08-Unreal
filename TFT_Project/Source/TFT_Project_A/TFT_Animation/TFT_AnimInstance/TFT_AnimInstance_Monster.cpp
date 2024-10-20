@@ -12,11 +12,19 @@
 UTFT_AnimInstance_Monster::UTFT_AnimInstance_Monster()
 {
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> am
-	(TEXT("/Script/Engine.AnimMontage'/Game/BluePrint/animation/TFT_Montage_Monster.TFT_Montage_Monster'"));
+	(TEXT("/Script/Engine.AnimMontage'/Game/BluePrint/animation/MonsterAttackDelay/TFT_AnimMontage_Boss.TFT_AnimMontage_Boss'"));
 
 	if (am.Succeeded())
 	{
 		_myAnimMontage = am.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> sm
+	(TEXT("/Script/Engine.AnimMontage'/Game/BluePrint/animation/SMASH_MONTAGE.SMASH_MONTAGE'"));
+
+	if (sm.Succeeded())
+	{
+		_skillMontage = sm.Object;
 	}
 }
 
@@ -41,9 +49,37 @@ void UTFT_AnimInstance_Monster::PlayAttackMontage()
 		Montage_Play(_myAnimMontage);
 
 		ATFT_Monster* myCharacter = Cast<ATFT_Monster>(TryGetPawnOwner());
+		if (myCharacter)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pawn Owner Cast Successful"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Pawn Owner Cast Failed"));
+		}
 		
 	}
 }
+
+void UTFT_AnimInstance_Monster::PlaySkillMontage()
+{
+	if (!Montage_IsPlaying(_skillMontage))
+	{
+		Montage_Play(_skillMontage);
+
+		ATFT_Monster* myCharacter = Cast<ATFT_Monster>(TryGetPawnOwner());
+		if (myCharacter)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Skill Cast Successful"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Skill Cast Failed"));
+		}
+
+	}
+}
+
 
 void UTFT_AnimInstance_Monster::DelegateTest()
 {

@@ -26,7 +26,13 @@ ATFT_SoundManager::ATFT_SoundManager()
 	CreateSoundCue("TeamAI_Archer_Death", "/Script/Engine.SoundCue'/Game/ParagonSparrow/Audio/Cues/TFT_TeamAI_Sparrow_Effort_Death1.TFT_TeamAI_Sparrow_Effort_Death1'");
 	CreateSoundCue("Monster_Normal_Death", "/Script/Engine.SoundCue'/Game/ParagonGrux/Characters/Heroes/Grux/Sounds/SoundCues/TFT_Normal_Grux_Effort_Death.TFT_Normal_Grux_Effort_Death'");
 	CreateSoundCue("Monster_Boss_Death", "/Script/Engine.SoundCue'/Game/ParagonGrux/Characters/Heroes/Grux/Sounds/SoundCues/Grux_Death_TFT.Grux_Death_TFT'");
+	
+	CreateSoundCue("Knight_Walk_Stone", "/Script/Engine.SoundCue'/Game/cplomedia_footsteps/Cues/TFT_FootStep_Walk_Knight_HardFloor_Cue.TFT_FootStep_Walk_Knight_HardFloor_Cue'");
+	CreateSoundCue("Knight_Walk_Grass", "/Script/Engine.SoundCue'/Game/cplomedia_footsteps/Cues/TFT_FootStep_Walk_Knight_Grass_Cue.TFT_FootStep_Walk_Knight_Grass_Cue'");
+	CreateSoundCue("Knight_Walk_Water", "/Script/Engine.SoundCue'/Game/cplomedia_footsteps/Cues/TFT_FootStep_Walk_Knight_Water_Cue.TFT_FootStep_Walk_Knight_Water_Cue'");
 
+	CreateSoundCue("Use_Skill", "/Script/Engine.SoundCue'/Game/Sound/BGM/Explosion.Explosion'");
+	CreateSoundCue("JumpAttack", "/Script/Engine.SoundCue'/Game/Sound/BGM/DeathExplosion.DeathExplosion'");
 }
 
 void ATFT_SoundManager::CreateSoundCue(FString keyName, FString path)

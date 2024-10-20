@@ -32,4 +32,10 @@ public:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Projectile, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class ATFT_Projectile> _projectileClass;
+
+	UPROPERTY()
+	class ATFT_Projectile* _projectile;
+
+private:
+	
 };

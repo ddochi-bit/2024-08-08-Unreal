@@ -15,6 +15,9 @@
 
 #include "TFT_GameInstance.h"
 #include "TFT_SoundManager.h"
+#include "TFT_UIManager.h"
+
+#include "Kismet/GameplayStatics.h"
 
 ATFT_TeamAI_Knight::ATFT_TeamAI_Knight()
 {
@@ -41,6 +44,36 @@ ATFT_TeamAI_Knight::ATFT_TeamAI_Knight()
 	SetMesh("/Script/Engine.SkeletalMesh'/Game/ParagonTerra/Characters/Heroes/Terra/Skins/MountainForge/Meshes/Terra_MountainForge.Terra_MountainForge'");
 
 	
+}
+
+void ATFT_TeamAI_Knight::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// �÷��̾� ĳ���� ��������
+	AActor* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (Player)
+	{
+		// �÷��̾�� AI ĳ���� �� �Ÿ� ���
+		float Distance = FVector::Dist(Player->GetActorLocation(), GetActorLocation());
+
+		// ü�¹� ������ �����ϴ��� Ȯ��
+		if (_hpbarWidget)
+		{
+			// Ư�� �Ÿ� ���� ���� ��� ü�¹� ǥ��, �ָ� ������ ����
+			if (Distance <= 700.0f)  // ��: 1000 ���� �̳��� �� ü�¹� ǥ��
+			{
+				_hpbarWidget->SetVisibility(false);
+				_hpbarWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);
+			}
+			else
+			{
+				_hpbarWidget->SetVisibility(false);
+				_hpbarWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
+	}
 }
 
 void ATFT_TeamAI_Knight::PostInitializeComponents()
@@ -77,6 +110,23 @@ void ATFT_TeamAI_Knight::BeginPlay()
 	Init();
 
 	_statCom->SetLevelAndInit(21);
+
+	if (Index == INDEX_NONE)
+	{
+		Index = 0;  // 나이트에 대한 기본 인덱스 값 설정
+	}
+
+	// 현재 HP 비율을 UIManager에 전달
+	if (_statCom)
+	{
+		float initialHPRatio = _statCom->HpRatio();
+		auto* UIManager = Cast<ATFT_UIManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATFT_UIManager::StaticClass()));
+		if (UIManager)
+		{
+			UIManager->OnKnightHPChanged(initialHPRatio, Index);  // 나이트의 Index 값을 넘김
+		}
+	}
+
 }
 
 void ATFT_TeamAI_Knight::Init()

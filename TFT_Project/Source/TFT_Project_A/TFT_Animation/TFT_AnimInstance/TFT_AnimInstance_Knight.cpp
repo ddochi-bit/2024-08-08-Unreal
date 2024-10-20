@@ -8,12 +8,17 @@
 
 UTFT_AnimInstance_Knight::UTFT_AnimInstance_Knight()
 {
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> am(TEXT("/Script/Engine.AnimMontage'/Game/BluePrint/animation/TFT_Montage_knight.TFT_Montage_knight'"));
-
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> am
+	(TEXT("/Script/Engine.AnimMontage'/Game/BluePrint/animation/TFT_Montage_knight.TFT_Montage_knight'"));
 	if (am.Succeeded())
 	{
 		_myAnimMontage = am.Object;
 	}
+}
+
+void UTFT_AnimInstance_Knight::NativeInitializeAnimation()
+{
+	_playerKnight = Cast<ATFT_Player>(GetOwningActor());
 }
 
 void UTFT_AnimInstance_Knight::NativeUpdateAnimation(float DeltaSeconds)
@@ -33,10 +38,7 @@ void UTFT_AnimInstance_Knight::PlayAttackMontage()
 {
 	if (!Montage_IsPlaying(_myAnimMontage))
 	{
-		Montage_Play(_myAnimMontage);
-
-		ATFT_Knight* myCharacter = Cast<ATFT_Knight>(TryGetPawnOwner());
-		
+		Montage_Play(_myAnimMontage);		
 	}
 }
 
@@ -64,5 +66,13 @@ void UTFT_AnimInstance_Knight::AnimNotify_DeathStart()
 void UTFT_AnimInstance_Knight::AnimNotify_DeathEnd()
 {
 	_deathEndDelegate.Broadcast();
+}
+
+void UTFT_AnimInstance_Knight::AnimNotify_FootStep()
+{
+	if (_playerKnight != nullptr)
+	{
+		_footStepDelegate.Broadcast();
+	}
 }
 

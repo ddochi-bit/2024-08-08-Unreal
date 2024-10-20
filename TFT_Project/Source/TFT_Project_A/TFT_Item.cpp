@@ -62,11 +62,12 @@ void ATFT_Item::LoadItemData()
 			_Space = ItemData->Space; 
 			_Explanation = ItemData->Explanation;
 			_MiniInfo = ItemData->MiniInfo;
+			_ItemRegion = ItemData->ItemRegion;
 			
 			if (ItemData->ItemMesh)
 			{
+				ItemMesh = ItemData->ItemMesh;
 				_meshComponent->SetStaticMesh(ItemData->ItemMesh);
-
 			}
 
 			if (ItemData->ItemTexture)
@@ -79,11 +80,9 @@ void ATFT_Item::LoadItemData()
 				}
 			}
 
-
 			UE_LOG(LogTemp, Warning, TEXT("Item Name : %s"), *_Name);
 		}
 	}
-
 }
 
 
@@ -103,8 +102,6 @@ void ATFT_Item::Init()
 
 void ATFT_Item::OnMyCharacterOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromWeep, const FHitResult& SweepResult)
 {
-	
-
 	auto MyPlayer = Cast<ATFT_Player>(OtherActor);
 
 	if (MyPlayer)
@@ -113,6 +110,7 @@ void ATFT_Item::OnMyCharacterOverlap(UPrimitiveComponent* OverlappedComponent, A
 		MyPlayer->AddItemPlayer(this);
 	}
 }
+
 
 void ATFT_Item::Disable()
 {

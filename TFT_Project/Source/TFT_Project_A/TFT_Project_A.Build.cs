@@ -12,6 +12,13 @@ public class TFT_Project_A : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
+		PublicIncludePaths.AddRange(new string[] {
+			"TFT_Project_A",
+			"TFT_Project_A/TFT_Component",
+			"TFT_Project_A/TFT_Animation",
+			"TFT_Project_A/TFT_Animation/TFT_AnimInstance"
+		});
+
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 		

@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "TFT_InvenUI.generated.h"
 
+class UTextBlock;
 class ATFT_Item;
 class UTFT_InvenComponent;
 
@@ -27,6 +28,9 @@ public:
 
 	UFUNCTION()
 	void DropItem();
+
+	UFUNCTION()
+	void UseItem();
 
 	UFUNCTION()
 	void SetItemSlot(UTexture2D* texture, int32 slotIndex);
@@ -62,8 +66,14 @@ public:
 	void UISetItemExplanation(int32 index);
 	void UIGold(int32 gold);
 
+	bool Store_DropSellTextCheck();
+
 	CloseInvenBtn _CloseInvenBtn;
 	SlotItem _SlotItemEvent;
+	SlotItem _itemSellEvent;
+	SlotItem _itemEquipmentEvent;
+	SlotItem _itemUesEvent;
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UCanvasPanel* Inven_Panel;
@@ -82,26 +92,34 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* DetailViewImg;
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Item_Information;
+	UTextBlock* Item_Information;
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Inven_ItemMiniInfo;
+	UTextBlock* Inven_ItemMiniInfo;
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Inven_ItemExplanation;
+	UTextBlock* Inven_ItemExplanation;
 
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Inven_UIGold;
+	UTextBlock* Inven_UIGold;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* Drop_Button;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* TFT_InvenWidget_Drop_Text;
+	UPROPERTY(meta = (BindWidget))
+	UButton* Use_Button;
 	UPROPERTY(meta = (BindWidget))
 	UButton* Exit_Button;
 
 	UTexture2D* _emptySlot;
 	FText _nullText = FText::FromString("");
 
+	
+
 private:
 	TArray<ATFT_Item*> _UIsaveiteminfo;
 	ATFT_Item* _this_Item;
 	int32 this_Index = -1;
+
+	bool _SellorDrop = false;
 };

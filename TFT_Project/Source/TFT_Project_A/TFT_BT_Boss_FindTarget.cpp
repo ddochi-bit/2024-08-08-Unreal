@@ -9,6 +9,7 @@
 #include "Engine/OverlapResult.h"
 #include "TFT_Player.h"
 #include "TFT_TeamAI.h"
+#include "TFT_AggroComponent.h" //
 
 UTFT_BT_Boss_FindTarget::UTFT_BT_Boss_FindTarget()
 {
@@ -23,6 +24,15 @@ void UTFT_BT_Boss_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
     auto currentPawn = OwnerComp.GetAIOwner()->GetPawn();
     if (currentPawn == nullptr)
         return;
+
+    //
+    auto aggroComponent = currentPawn->FindComponentByClass<UTFT_AggroComponent>();
+    if (aggroComponent == nullptr)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Aggro Component not found on the Pawn!"));
+        return;
+    }///
+
 
     auto world = GetWorld();
     FVector center = currentPawn->GetActorLocation();
@@ -46,7 +56,15 @@ void UTFT_BT_Boss_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 
     if (bResult)
     {
-        for (auto& result : overlapResult)
+        // Aggro
+        AActor* targetActor = aggroComponent->GetAggroTarget();
+        if (targetActor != nullptr)
+        {
+            OwnerComp.GetBlackboardComponent()->SetValueAsObject(FName(TEXT("Target")), targetActor);
+            return;
+        }
+
+        for (auto& result : overlapResult)//Controller
         {
 
             auto myPlayer = Cast<ATFT_Player>(result.GetActor());
@@ -69,12 +87,15 @@ void UTFT_BT_Boss_FindTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 
                 return;
             }
+
+
         }
 
     }
     else
     {
         OwnerComp.GetBlackboardComponent()->SetValueAsObject(FName(TEXT("Target")), nullptr);
-        
+
     }
+
 }

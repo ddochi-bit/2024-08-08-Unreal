@@ -25,6 +25,9 @@ public:
 	virtual void Attack_AI();
 
 	UFUNCTION()
+	virtual void AttackEnd();
+
+	UFUNCTION()
 	virtual void DropItem();
 
 	virtual float TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;

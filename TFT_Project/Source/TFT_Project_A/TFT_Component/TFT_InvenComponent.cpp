@@ -3,12 +3,17 @@
 
 #include "TFT_InvenComponent.h"
 
+#include "TFT_Player.h"
+
+#include "TFT_GameInstance.h"
+#include "TFT_UIManager.h"
+
 #include "TFT_Item.h"
 #include "TFT_InvenUI.h"
+#include "TFT_TM_SkillUI.h"
 
 #include "Components/WidgetComponent.h"
 #include "Blueprint/UserWidget.h"
-
 
 UTFT_InvenComponent::UTFT_InvenComponent()
 {
@@ -41,7 +46,7 @@ void UTFT_InvenComponent::AddItem(ATFT_Item* item)
 {
 	if (item->GetItemType() == "gold")
 	{
-		UE_LOG(LogTemp, Log, TEXT("%d gold Get~too ~"), item->GetItemGold());
+		UE_LOG(LogTemp, Log, TEXT("%d gold Get~to da je~"), item->GetItemGold());
 
 		AddPlayerGold(item->GetItemGold());
 		item->Disable();
@@ -85,6 +90,30 @@ void UTFT_InvenComponent::DropItem(int32 index)
 	_items[index] = nullptr;
 }
 
+void UTFT_InvenComponent::SellItem(int32 index)
+{
+	AddPlayerGold(_items[index]->GetSellGold());
+
+	ATFT_Item* itemToRemove = _items[index];
+	_items[index] = nullptr;
+}
+
+void UTFT_InvenComponent::UseItem(int32 index)
+{
+	//if (_items[index]->GetItemType() == "Equipment") // equipment
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("Equipment Item Use"));
+
+	//}
+	//else if (_items[index]->GetItemType() == "Utility") // Utility
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("Utility Item Use"));
+
+	//}
+
+	_items[index] = nullptr;
+}
+
 void UTFT_InvenComponent::SlectItemUI(int32 index)
 {
 	_itemSlectEvent.Broadcast(_items[index], index);
@@ -94,4 +123,35 @@ void UTFT_InvenComponent::AddPlayerGold(int32 gold)
 {
 	_playerGold += gold;
 	_GoldChangeEvnet.Broadcast(_playerGold);
+}
+
+void UTFT_InvenComponent::SetWeapon(ATFT_Item* NewWeapon)
+{
+	if (NewWeapon == nullptr /*&& !CanSetWeapon()*/) return;
+
+	auto player = Cast<ATFT_Player>(GetOwner());
+
+	FName HR_WeaponSocket(TEXT("hand_r_socket"));
+
+	if (_currentWeapon != nullptr)
+	{
+		_currentWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		_currentWeapon->SetOwner(nullptr);
+	}
+
+	_currentWeapon = NewWeapon;
+	_currentWeapon->SetActorHiddenInGame(false);
+	_currentWeapon->AttachToComponent(player->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, HR_WeaponSocket);
+	_currentWeapon->SetOwner(player);
+
+	if (_currentWeapon->_Itemid == 1)
+	{
+		UIMANAGER->GetSkillUI()->SetSkillSlot(0, 5.0f, _currentWeapon->_Itemid);
+		UIMANAGER->GetSkillUI()->ResetSkillSlot(1);
+	}
+	else if (_currentWeapon->_Itemid == 3)
+	{
+		UIMANAGER->GetSkillUI()->SetSkillSlot(1, 8.0f, _currentWeapon->_Itemid);
+		UIMANAGER->GetSkillUI()->ResetSkillSlot(0);
+	}
 }

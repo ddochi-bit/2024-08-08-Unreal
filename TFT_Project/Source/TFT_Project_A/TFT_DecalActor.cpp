@@ -81,7 +81,7 @@ void ATFT_DecalActor::DeActiveEvent(FVector location)
             DecalLocation,
             DecalLocation,
             FQuat::Identity,
-            ECC_Pawn,  
+            ECollisionChannel::ECC_GameTraceChannel3,
             CollisionShape
         );
 
@@ -93,18 +93,18 @@ void ATFT_DecalActor::DeActiveEvent(FVector location)
                 AActor* HitActor = Hit.GetActor();
                 if (HitActor)
                 {
-                    
                     ATFT_Player* Player = Cast<ATFT_Player>(HitActor);
                     if (Player)
-                    {
-                        
-                        float DamageAmount = 100.0f;  
+                    {                       
+                        float DamageAmount = 500.0f;  
                         Player->TakeDamage(DamageAmount, FDamageEvent(), GetInstigatorController(), this);
                     }
                 }
             }
         }
     }
+
+    // DrawDebugSphere(GetWorld(), DecalLocation, Radius, 20, FColor::Red, false, 2.0f);
 
 	EffectManager->Play("P_Explosion", 0, location);
 }

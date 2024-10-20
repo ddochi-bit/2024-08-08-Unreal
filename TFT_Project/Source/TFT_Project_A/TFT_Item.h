@@ -34,12 +34,14 @@ struct FTFT_ItemData : public FTableRowBase
 	FString Explanation; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString MiniInfo; 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString ItemRegion;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTexture2D* ItemTexture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		UStaticMesh* ItemMesh;
+	UStaticMesh* ItemMesh;
 
 };
 
@@ -57,7 +59,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	void LoadItemData();
 
 	virtual void PostInitializeComponents() override;
 
@@ -65,8 +66,11 @@ protected:
 	void OnMyCharacterOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromWeep, const FHitResult& SweepResult);
 
 public:
+
 	void Init();
 	void Disable();
+
+	void LoadItemData();
 
 	FString GetItemName() { return _Name; }
 	FString GetItemMiniInfo() { return _MiniInfo; }
@@ -74,7 +78,9 @@ public:
 	int32 GetItemAttackDamage() { return _AttackPower; }
 	UTexture2D* GetMyTexture() { return _ItemTexture; }
 	int32 GetItemGold() { return _Buy; }
+	int32 GetSellGold() { return _Sell; }
 	FString GetItemType() { return _ItemType; }
+	FString GetItemRegion() { return _ItemRegion; }
 public:
 	virtual void Tick(float DeltaTime) override;
 
@@ -92,6 +98,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemID")
 	int32 _Itemid = 0;
 
+	void SetItemid(int32 num) { _Itemid = num;  LoadItemData(); }
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
@@ -105,5 +113,7 @@ private:
 	int32 _Space; 
 	FString _Explanation; 
 	UTexture2D* _ItemTexture;
+	UStaticMesh* ItemMesh;
 	FString _MiniInfo;
+	FString _ItemRegion;
 };

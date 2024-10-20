@@ -27,6 +27,10 @@ void ATFT_Monster::Attack_AI()
 {
 }
 
+void ATFT_Monster::AttackEnd()
+{
+}
+
 void ATFT_Monster::DropItem()
 {
 }

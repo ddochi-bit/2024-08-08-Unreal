@@ -23,6 +23,7 @@ ATFT_Effect_Manager::ATFT_Effect_Manager()
 	CreateParticleClass(TEXT("N_Monster_Boss_Attack_Hit"), TEXT("/Script/Engine.Blueprint'/Game/BluePrint/VFX/TFT_N_Monster_Boss_Attack_Hit_Effect_BP.TFT_N_Monster_Boss_Attack_Hit_Effect_BP_C'"));
 	CreateParticleClass(TEXT("Fireball"), TEXT("/Script/Engine.Blueprint'/Game/BluePrint/VFX/TFT_Skill_BP.TFT_Skill_BP_C'"));
 	CreateParticleClass(TEXT("N_Player_LevelUp"), TEXT("/Script/Engine.Blueprint'/Game/BluePrint/VFX/TFT_N_Player_LevelUp_BP.TFT_N_Player_LevelUp_BP_C'"));
+	CreateParticleClass(TEXT("JumpAttack"), TEXT("/Script/Engine.Blueprint'/Game/BluePrint/VFX/TFT_DH_Skill_BP.TFT_DH_Skill_BP_C'"));
 }
 
 void ATFT_Effect_Manager::CreateParticleClass(FString name, FString path)

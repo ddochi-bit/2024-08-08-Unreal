@@ -5,14 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 
-
 #include "TFT_MeshComponent.h"
 #include "TFT_StatComponent.h"
 #include "TFT_InvenComponent.h"
 #include "TFT_StoreComponent.h"
-
-#include "TFT_AnimInstance_Knight.h"
-#include "TFT_AnimInstance_Archer.h"
+#include "TFT_StateComponent.h"
 
 #include "TFT_Creature.generated.h"
 
@@ -24,6 +21,7 @@ struct FInputActionValue;
 class UTFT_MeshComponent;
 class UTFT_StatComponent;
 class UTFT_InvenComponent;
+class UTFT_StateComponent;
 
 
 DECLARE_MULTICAST_DELEGATE(Delegate_AttackEnded);
@@ -50,6 +48,9 @@ public:
 
 	int32 GetCurHp() { return _statCom->GetCurHp(); }
 
+	virtual bool GetCurState(StateType type) { return _stateCom->GetState(type); }
+	virtual void SetState(StateType type) { _stateCom->SetState(type); }
+	virtual void InitState() { _stateCom->InitState(); }
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -65,6 +66,9 @@ public:
 
 	UFUNCTION()
 	virtual void Disable();
+
+	UFUNCTION()
+	virtual void FootStep();
 
 	Delegate_AttackEnded _attackEndedDelegate;
 
@@ -84,6 +88,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inven, meta = (AllowPrivateAccess = true))
 	UTFT_InvenComponent* _invenCom;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inven, meta = (AllowPrivateAccess = "true"))
+	UTFT_StateComponent* _stateCom;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = true))
 	class UWidgetComponent* _hpbarWidget;
 	
@@ -102,15 +109,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	float _horizontal = 0.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool isDashing = false;
+
 
 	class UUserWidget* HpBarWidgetInstance;
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Store, meta = (AllowPrivateAccess = true))
 	class UTFT_StoreComponent* _storeCom;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
-	class UTFT_InvenUI* _invenUIInstance;
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AttackHit, meta = (AllowPrivateAccess = "true"))

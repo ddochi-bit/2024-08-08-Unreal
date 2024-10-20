@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "TFT_StatComponent.h"
-
 
 #include "TFT_GameInstance.generated.h"
 
@@ -15,9 +15,9 @@ class ATFT_SoundManager;
 
 
 
-#define UIMANAGER Cast<UTFT_GameInstance>(GetGameInstance())->GetUIManager()
-#define EffectManager Cast<UTFT_GameInstance>(GetGameInstance())->GetEffectManager()
-#define SoundManager Cast<UTFT_GameInstance>(GetGameInstance())->GetSoundManager()
+#define UIMANAGER Cast<UTFT_GameInstance>(GetWorld()->GetGameInstance())->GetUIManager()
+#define EffectManager Cast<UTFT_GameInstance>(GetWorld()->GetGameInstance())->GetEffectManager()
+#define SoundManager Cast<UTFT_GameInstance>(GetWorld()->GetGameInstance())->GetSoundManager()
 
 
 UCLASS()

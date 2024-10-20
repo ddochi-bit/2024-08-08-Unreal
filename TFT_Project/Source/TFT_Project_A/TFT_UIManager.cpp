@@ -6,6 +6,14 @@
 #include "Blueprint/UserWidget.h"
 #include "TFT_InvenUI.h"
 #include "TFT_StoreUI.h"
+#include "TFT_TM_SkillUI.h"
+#include "TFT_Equipment_Window.h"
+#include "TFT_AggroUI.h"
+#include "TFT_TeamAI_Archer.h"
+#include "TFT_TeamAI_Knight.h"
+#include "UTFT_PartyHPWidget.h"
+
+#include "Kismet/GameplayStatics.h"
 
 
 ATFT_UIManager::ATFT_UIManager()
@@ -21,14 +29,40 @@ ATFT_UIManager::ATFT_UIManager()
 	}
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> crossHair(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BluePrint/UI/TFT_CrossHair_BP.TFT_CrossHair_BP_C'"));
-
 	if (crossHair.Succeeded())
 	{
 		_crossHair = CreateWidget<UUserWidget>(GetWorld(), crossHair.Class);
 	}
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> skillUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BluePrint/UI/TM_UI/TFT_TM_SkillUI_BP.TFT_TM_SkillUI_BP_C'"));
+	if (skillUI.Succeeded())
+	{
+		_skillUIWidget = CreateWidget<UTFT_TM_SkillUI>(GetWorld(), skillUI.Class);
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> EquipmentUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BluePrint/UI/CG_UI/UTFT_Equipment_BP.UTFT_Equipment_BP_C'"));
+	if (EquipmentUI.Succeeded())
+	{
+		_EquipmentWidget = CreateWidget<UTFT_Equipment_Window>(GetWorld(), EquipmentUI.Class);
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> aggroUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BluePrint/UI/TFT_AggroWidget_BP.TFT_AggroWidget_BP_C'"));
+	if (aggroUI.Succeeded())
+	{
+		_aggroUIWidget = CreateWidget<UTFT_AggroUI>(GetWorld(), aggroUI.Class);
+	}
+	static ConstructorHelpers::FClassFinder<UUserWidget> partyHPUI(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BluePrint/UI/PartyHPWidget.PartyHPWidget_C'"));
+	if (partyHPUI.Succeeded())
+	{
+		_partyHPWidget = CreateWidget<UUTFT_PartyHPWidget>(GetWorld(), partyHPUI.Class);
+	}
+
 	_widgets.Add(_crossHair);
 	_widgets.Add(_invenWidget);
+	_widgets.Add(_skillUIWidget);
+	_widgets.Add(_EquipmentWidget);
+	_widgets.Add(_aggroUIWidget);
+	_widgets.Add(_partyHPWidget);
 }
 
 
@@ -40,9 +74,39 @@ void ATFT_UIManager::BeginPlay()
 	CloseWidget(UIType::Inventory);
 
 	OpenWidget(UIType::CrossHair);
+	OpenWidget(UIType::SkillUI);
+
+	OpenWidget(UIType::EquipmentUI);
+	CloseWidget(UIType::EquipmentUI);
+
+	// OpenWidget(UIType::AggroUI);
+	OpenWidget(UIType::PartyHPUI);
 
 	_invenOpenEvent.AddUObject(this, &ATFT_UIManager::OpenInvenUIA);
 	_invenWidget->_CloseInvenBtn.AddUObject(this, &ATFT_UIManager::CloseInvenBtn);
+	_EquipmentOpenEvent.AddUObject(this, &ATFT_UIManager::OnOffEquipmentUIA);
+	_EquipmentWidget->_CloseEquipmentBtn.AddUObject(this, &ATFT_UIManager::CloseEquipmentUIA);
+
+	TArray<AActor*> FoundArchers;
+	TArray<AActor*> FoundKnights;
+
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATFT_TeamAI_Archer::StaticClass(), FoundArchers);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATFT_TeamAI_Knight::StaticClass(), FoundKnights);
+
+	TArray<ATFT_TeamAI_Archer*> ArcherAIs;
+	TArray<ATFT_TeamAI_Knight*> KnightAIs;
+
+	for (AActor* Actor : FoundArchers)
+	{
+		ArcherAIs.Add(Cast<ATFT_TeamAI_Archer>(Actor));
+	}
+	for (AActor* Actor : FoundKnights)
+	{
+		KnightAIs.Add(Cast<ATFT_TeamAI_Knight>(Actor));
+	}
+
+	BindHPUpdateToAI(ArcherAIs, KnightAIs);
+
 }
 
 void ATFT_UIManager::Tick(float DeltaTime)
@@ -53,10 +117,8 @@ void ATFT_UIManager::Tick(float DeltaTime)
 
 void ATFT_UIManager::OpenWidget(UIType type)
 {
-
 	int32 typeNum = (int32)type;
-	if (_widgets.Num() <= typeNum)
-		return;
+	if (_widgets.Num() <= typeNum) return;
 
 	_widgets[typeNum]->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 	_widgets[typeNum]->AddToViewport(typeNum);
@@ -84,16 +146,16 @@ void ATFT_UIManager::CloseAll()
 
 void ATFT_UIManager::OpenInvenUIA()
 {
-	if (_UIarea == false)
+	if (_UIInvenarea == false)
 	{
 		UE_LOG(LogTemp, Log, TEXT("ainven : open"));
-		_UIarea = true;
+		_UIInvenarea = true;
 		OpenWidget(UIType::Inventory);
 	}
-	else if (_UIarea == true)
+	else if (_UIInvenarea == true)
 	{
 		UE_LOG(LogTemp, Log, TEXT("inven : close"));
-		_UIarea = false;
+		_UIInvenarea = false;
 		CloseWidget(UIType::Inventory);
 	}
 }
@@ -101,9 +163,74 @@ void ATFT_UIManager::OpenInvenUIA()
 void ATFT_UIManager::CloseInvenBtn()
 {
 	UE_LOG(LogTemp, Log, TEXT("inven : close"));
-	_UIarea = false;
+	_UIInvenarea = false;
 	CloseWidget(UIType::Inventory);
 }
+
+void ATFT_UIManager::OnOffEquipmentUIA()
+{
+	if (_UIEquipmentarea == false)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Equipment : open"));
+		_UIEquipmentarea = true;
+		OpenWidget(UIType::EquipmentUI);
+	}
+	else if (_UIEquipmentarea == true)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Equipment : close"));
+		_UIEquipmentarea = false;
+		_EquipmentCloseResetEvent.Broadcast();
+		CloseWidget(UIType::EquipmentUI);
+	}
+}
+
+void ATFT_UIManager::CloseEquipmentUIA()
+{
+	UE_LOG(LogTemp, Log, TEXT("Equipment : close"));
+	_UIEquipmentarea = false;
+	_EquipmentCloseResetEvent.Broadcast();
+	CloseWidget(UIType::EquipmentUI);
+}
+
+void ATFT_UIManager::BindHPUpdateToAI(const TArray<class ATFT_TeamAI_Archer*>& ArcherAIs, const TArray<class ATFT_TeamAI_Knight*>& KnightAIs)
+{
+	for (int32 i = 0; i < ArcherAIs.Num(); ++i)
+	{
+		if (ArcherAIs[i] && ArcherAIs[i]->_statCom)
+		{
+			float initialHPRatio = ArcherAIs[i]->_statCom->HpRatio();
+			OnArcherHPChanged(initialHPRatio, i);
+			ArcherAIs[i]->_statCom->OnHPChanged.AddUObject(this, &ATFT_UIManager::OnArcherHPChanged, i);
+		}
+	}
+
+	for (int32 i = 0; i < KnightAIs.Num(); ++i)
+	{
+		if (KnightAIs[i] && KnightAIs[i]->_statCom)
+		{
+			float initialHPRatio = KnightAIs[i]->_statCom->HpRatio();
+			OnKnightHPChanged(initialHPRatio, i);
+			KnightAIs[i]->_statCom->OnHPChanged.AddUObject(this, &ATFT_UIManager::OnKnightHPChanged, i);
+		}
+	}
+}
+
+void ATFT_UIManager::OnArcherHPChanged(float NewHPRatio, int32 Index)
+{
+	if (_partyHPWidget)
+	{
+		_partyHPWidget->UpdateArcherHPBar(Index, NewHPRatio);
+	}
+}
+
+void ATFT_UIManager::OnKnightHPChanged(float NewHPRatio, int32 Index)
+{
+	if (_partyHPWidget)
+	{
+		_partyHPWidget->UpdateKnightHPBar(Index, NewHPRatio);
+	}
+}
+
 
 
 

@@ -9,14 +9,22 @@
 
 class UUserWidget;
 class UTFT_InvenUI;
+class UTFT_TM_SkillUI;
+class UTFT_Equipment_Window;
+class UTFT_AggroUI;
+class UUTFT_PartyHPWidget;
 
-DECLARE_MULTICAST_DELEGATE(InvenOpen);
+DECLARE_MULTICAST_DELEGATE(UIOpenEvent);
 
 UENUM()
 enum class UIType : int32
 {
 	CrossHair,
 	Inventory,
+	SkillUI,
+	EquipmentUI,
+	AggroUI,
+	PartyHPUI,
 };
 
 
@@ -26,19 +34,13 @@ class TFT_PROJECT_A_API ATFT_UIManager : public AActor
 	GENERATED_BODY()
 	
 public:	
-	
 	ATFT_UIManager();
 
 protected:
-
 	virtual void BeginPlay() override;
 
-
 public:	
-
 	virtual void Tick(float DeltaTime) override;
-
-
 
 	void OpenWidget(UIType type);
 	void CloseWidget(UIType type);
@@ -49,9 +51,25 @@ public:
 	UFUNCTION()
 	void CloseInvenBtn();
 
-	UTFT_InvenUI* GetInvenUI() { return _invenWidget; }
+	UFUNCTION()
+	void OnOffEquipmentUIA();
+	UFUNCTION()
+	void CloseEquipmentUIA();
 
-	InvenOpen _invenOpenEvent;
+	void BindHPUpdateToAI(const TArray<class ATFT_TeamAI_Archer*>& ArcherAIs, const TArray<class ATFT_TeamAI_Knight*>& KnightAIs);  // AI 캐릭터들의 HP 업데이트 바인딩 함수
+
+	void OnArcherHPChanged(float NewHPRatio, int32 Index);  
+	void OnKnightHPChanged(float NewHPRatio, int32 Index);  
+
+	UTFT_InvenUI* GetInvenUI() { return _invenWidget; }
+	UUserWidget* GetCrossHair() { return _crossHair; }
+	UTFT_TM_SkillUI* GetSkillUI() { return _skillUIWidget; }
+	UTFT_Equipment_Window* GetEquipmentUI() { return _EquipmentWidget; }
+	UTFT_AggroUI* GetAggroUI() { return _aggroUIWidget; }
+
+	UIOpenEvent _invenOpenEvent;
+	UIOpenEvent _EquipmentOpenEvent;
+	UIOpenEvent _EquipmentCloseResetEvent;
 
 private:
 	UPROPERTY()
@@ -60,8 +78,20 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
 	UTFT_InvenUI* _invenWidget;
 
-	bool _UIarea = false;
+	bool _UIInvenarea = false;
+	bool _UIEquipmentarea = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
 	UUserWidget* _crossHair;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UTFT_TM_SkillUI* _skillUIWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UTFT_Equipment_Window* _EquipmentWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UTFT_AggroUI* _aggroUIWidget;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI, meta = (AllowPrivateAccess = "true"))
+	UUTFT_PartyHPWidget* _partyHPWidget;
 };

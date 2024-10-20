@@ -81,7 +81,7 @@ void ATFT_Archer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_statCom->SetLevelAndInit(1);
+	_statCom->SetLevelAndInit(8);
 }
 
 void ATFT_Archer::SetMesh(FString path)
@@ -103,8 +103,17 @@ void ATFT_Archer::AttackHit_ADC()
 		FVector forward = GetActorForwardVector();
 		FVector fireLocation = GetActorLocation() + forward * 150;
 
-		auto projectile = GetWorld()->SpawnActor<ATFT_Projectile>(_projectileClass, fireLocation, FRotator::ZeroRotator);
-		projectile->FireInDirection(forward);
+		
+		FRotator fireRotation = GetActorRotation();
+
+		
+		auto projectile = GetWorld()->SpawnActor<ATFT_Projectile>(_projectileClass, fireLocation, fireRotation);
+		if (projectile)
+		{
+		
+			projectile->FireInDirection(forward);
+			_projectile = projectile;
+		}
 	}
 
 	FHitResult hitResult;
@@ -134,12 +143,17 @@ void ATFT_Archer::AttackHit_ADC()
 
 	FColor drawColor = FColor::Green;
 
+
+
 	if (bResult && hitResult.GetActor()->IsValidLowLevel())
 	{
 		drawColor = FColor::Red;
 		FDamageEvent damageEvent;
 		hitResult.GetActor()->TakeDamage(_statCom->GetAttackDamage(), damageEvent, GetController(), this);
 		_hitPoint = hitResult.ImpactPoint;
+
+		// TODO
+		_projectile->SetActorHiddenInGame(true);
 
 		EffectManager->Play("N_Archer_Attack_Hit", 1, _hitPoint);
 	}

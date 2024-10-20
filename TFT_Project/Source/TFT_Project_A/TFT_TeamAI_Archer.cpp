@@ -15,13 +15,15 @@
 
 #include "TFT_GameInstance.h"
 #include "TFT_SoundManager.h"
+#include "TFT_UIManager.h"
+
+#include "Kismet/GameplayStatics.h"
 
 ATFT_TeamAI_Archer::ATFT_TeamAI_Archer()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	_meshCom = CreateDefaultSubobject<UTFT_MeshComponent>(TEXT("Mesh_Com"));
-
 
 	SetMesh("/Script/Engine.SkeletalMesh'/Game/ParagonSparrow/Characters/Heroes/Sparrow/Skins/ZechinHuntress/Meshes/Sparrow_ZechinHuntress.Sparrow_ZechinHuntress'");
 
@@ -30,14 +32,45 @@ ATFT_TeamAI_Archer::ATFT_TeamAI_Archer()
 	_hpbarWidget->SetupAttachment(GetMesh());
 	_hpbarWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	_hpbarWidget->SetRelativeLocation(FVector(0.0f, 0.0f, 300.0f));
-
+	
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> hpBar(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BluePrint/UI/TFT_HpBar_Nomal_BP.TFT_HpBar_Nomal_BP_C'"));
 	if (hpBar.Succeeded())
 	{
 		_hpbarWidget->SetWidgetClass(hpBar.Class);
+		
 	}
 
+}
+
+void ATFT_TeamAI_Archer::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// �÷��̾� ĳ���� ��������
+	AActor* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+	if (Player)
+	{
+		// �÷��̾�� AI ĳ���� �� �Ÿ� ���
+		float Distance = FVector::Dist(Player->GetActorLocation(), GetActorLocation());
+
+		// ü�¹� ������ �����ϴ��� Ȯ��
+		if (_hpbarWidget)
+		{
+			// Ư�� �Ÿ� ���� ���� ��� ü�¹� ǥ��, �ָ� ������ ����
+			if (Distance <= 700.0f)  // ��: 1000 ���� �̳��� �� ü�¹� ǥ��
+			{
+				_hpbarWidget->SetVisibility(false);
+				_hpbarWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Visible);;
+			}
+			else
+			{
+				_hpbarWidget->SetVisibility(false);
+				_hpbarWidget->GetUserWidgetObject()->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
+	}
 }
 
 void ATFT_TeamAI_Archer::PostInitializeComponents()
@@ -72,7 +105,22 @@ void ATFT_TeamAI_Archer::BeginPlay()
 
 	Init();
 
-	_statCom->SetLevelAndInit(22);
+	if (Index == INDEX_NONE)
+	{
+		Index = 0;  
+	}
+
+	
+	if (_statCom)
+	{
+		float initialHPRatio = _statCom->HpRatio();
+		auto* UIManager = Cast<ATFT_UIManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ATFT_UIManager::StaticClass()));
+		if (UIManager)
+		{
+			UIManager->OnArcherHPChanged(initialHPRatio, Index);  
+		}
+	}
+
 }
 
 void ATFT_TeamAI_Archer::Init()
@@ -162,3 +210,4 @@ void ATFT_TeamAI_Archer::Disable()
 
 	_animInstance_Archer->_deathEndDelegate.RemoveAll(this);
 }
+

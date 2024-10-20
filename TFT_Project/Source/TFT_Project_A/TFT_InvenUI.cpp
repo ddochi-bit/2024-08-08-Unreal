@@ -82,9 +82,12 @@ bool UTFT_InvenUI::Initialize()
 		slotIndex++;
 	}
 
+
 	Exit_Button->OnClicked.AddDynamic(this, &UTFT_InvenUI::InvenOpenClose);
 
 	Drop_Button->OnClicked.AddDynamic(this, &UTFT_InvenUI::DropItem);
+
+	Use_Button->OnClicked.AddDynamic(this, &UTFT_InvenUI::UseItem);
 
 	_UIsaveiteminfo.SetNum(9);
 
@@ -106,6 +109,49 @@ void UTFT_InvenUI::InvenOpenClose()
 
 void UTFT_InvenUI::DropItem()
 {
+	if (Store_DropSellTextCheck() == true)
+	{
+		if (this_Index == -1)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Your Not Choice Item"));
+			return;
+		}
+		else
+		{
+			_SlotItemEvent.Broadcast(_this_Item, this_Index);
+
+			SetItemSlot(_emptySlot, this_Index);
+			DetailViewImg->SetBrushFromTexture(_emptySlot);
+			DeleteUIItem(this_Index);
+			Item_Information->SetText(_nullText);
+			Inven_ItemMiniInfo->SetText(_nullText);
+			Inven_ItemExplanation->SetText(_nullText);
+		}
+	}
+	else
+	{
+		if (this_Index == -1)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Your Not Choice Item"));
+			return;
+		}
+		else
+		{
+			_itemSellEvent.Broadcast(_this_Item, this_Index);
+
+			SetItemSlot(_emptySlot, this_Index);
+			DetailViewImg->SetBrushFromTexture(_emptySlot);
+			DeleteUIItem(this_Index);
+			Item_Information->SetText(_nullText);
+			Inven_ItemMiniInfo->SetText(_nullText);
+			Inven_ItemExplanation->SetText(_nullText);
+
+		}
+	}
+}
+
+void UTFT_InvenUI::UseItem()
+{
 	if (this_Index == -1)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Your Not Choice Item"));
@@ -113,10 +159,30 @@ void UTFT_InvenUI::DropItem()
 	}
 	else
 	{
-		_SlotItemEvent.Broadcast(_this_Item, this_Index);
+		/*if (_this_Item->GetItemType() == "Equipment")
+		{
+			UE_LOG(LogTemp, Log, TEXT("Equipment Item Use"));
+
+			_itemEquipmentEvent.Broadcast(_this_Item, this_Index);
+		}
+		else if (_this_Item->GetItemType() == "Utility")
+		{
+			UE_LOG(LogTemp, Log, TEXT("Utility Item Use"));
+			
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("not itme Use Event"));
+			return;
+		}*/
+		_itemUesEvent.Broadcast(_this_Item, this_Index);
+
 		SetItemSlot(_emptySlot, this_Index);
 		DetailViewImg->SetBrushFromTexture(_emptySlot);
 		DeleteUIItem(this_Index);
+		Item_Information->SetText(_nullText);
+		Inven_ItemMiniInfo->SetText(_nullText);
+		Inven_ItemExplanation->SetText(_nullText);
 	}
 }
 
@@ -138,6 +204,8 @@ void UTFT_InvenUI::AddUiItem(ATFT_Item* item, int32 index)
 
 void UTFT_InvenUI::SelectSlotItem(int32 index)
 {
+	Store_DropSellTextCheck();
+
 	if (_UIsaveiteminfo[index] != nullptr)
 	{
 		_this_Item = _UIsaveiteminfo[index];
@@ -232,7 +300,7 @@ void UTFT_InvenUI::UISetItemName(int32 index)
 
 void UTFT_InvenUI::UISetItemMiniInfo(int32 index)
 {
-	FString ItemMiniString = FString::Printf(TEXT("%s"), *_UIsaveiteminfo[index]->GetItemMiniInfo());
+	FString ItemMiniString = FString::Printf(TEXT("%s \n SellPrice : %d gold"), *_UIsaveiteminfo[index]->GetItemMiniInfo(), _UIsaveiteminfo[index]->GetSellGold());
 	FText ItemMiniInfo = FText::FromString(ItemMiniString);
 
 	Inven_ItemMiniInfo->SetText(ItemMiniInfo);
@@ -252,4 +320,24 @@ void UTFT_InvenUI::UIGold(int32 gold)
 	FText InvenUIGolds = FText::FromString(InvenGoldString);
 
 	Inven_UIGold->SetText(InvenUIGolds);
+}
+
+bool UTFT_InvenUI::Store_DropSellTextCheck()
+{
+	if (GetWorld()->GetFirstPlayerController()->bShowMouseCursor == true)
+	{
+		FString String = FString::Printf(TEXT("Sell"));
+		FText Sell = FText::FromString(String);
+
+		TFT_InvenWidget_Drop_Text->SetText(Sell);
+		return false;
+	}
+	else
+	{
+		FString String = FString::Printf(TEXT("Drop"));
+		FText Drop = FText::FromString(String);
+
+		TFT_InvenWidget_Drop_Text->SetText(Drop);
+		return true;
+	}
 }

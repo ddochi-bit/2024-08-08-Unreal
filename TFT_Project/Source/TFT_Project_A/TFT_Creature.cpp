@@ -17,6 +17,7 @@
 #include "TFT_PlayerController.h"
 #include "Components/Button.h"
 
+#include "TFT_StateComponent.h"
 
 ATFT_Creature::ATFT_Creature()
 {
@@ -24,6 +25,7 @@ ATFT_Creature::ATFT_Creature()
 	PrimaryActorTick.bCanEverTick = true;
 
 	_statCom = CreateDefaultSubobject<UTFT_StatComponent>(TEXT("Stat_Com"));
+	_stateCom = CreateDefaultSubobject<UTFT_StateComponent>(TEXT("State_Com"));
 
 }
 
@@ -84,4 +86,8 @@ void ATFT_Creature::DeathStart()
 void ATFT_Creature::Disable()
 {
 	this->SetActorHiddenInGame(true);
+}
+
+void ATFT_Creature::FootStep()
+{
 }

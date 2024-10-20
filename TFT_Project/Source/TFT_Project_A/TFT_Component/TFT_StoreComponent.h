@@ -8,6 +8,10 @@
 
 class UTFT_StoreUI;
 class UImage;
+class ATFT_Item;
+
+
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class TFT_PROJECT_A_API UTFT_StoreComponent : public UActorComponent
@@ -27,10 +31,11 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION()
-	void PurchaseItem(int32 itemSlot);
+	void PurchaseItem(ATFT_Item* item ,int32 index);
 
 	UTFT_StoreUI* GetStoreUI() { return _storeWidget; }
 
+	void SetStoreItem(int32 lineNum);
 public:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> _storeWidgetClass;
@@ -40,8 +45,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	TArray<class ATFT_Item*> _items;
+	//
 	UPROPERTY()
 	TSubclassOf<class ATFT_Item> _itemClass;
+	//
 	int32 _storeMaxSize = 9;
 	UPROPERTY()
 	ATFT_Item* _item;

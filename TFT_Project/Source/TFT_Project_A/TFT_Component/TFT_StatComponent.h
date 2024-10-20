@@ -12,6 +12,8 @@ DECLARE_MULTICAST_DELEGATE(DeathDelegate)
 DECLARE_MULTICAST_DELEGATE_OneParam(HpChanged, float)
 DECLARE_MULTICAST_DELEGATE_OneParam(ExpChanged, float)
 DECLARE_MULTICAST_DELEGATE(LevelUp)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangedDelegate, float);
+
 
 USTRUCT()
 struct FTFT_StatData : public FTableRowBase
@@ -77,12 +79,13 @@ public:
 	void SetExp(int32 amount);
 
 
-
+	
 
 	HpChanged _hpChangedDelegate;
 	DeathDelegate _deathDelegate;
 	ExpChanged _expChangedDelegate;
 	LevelUp _levelUpDelegate;
+	FOnHPChangedDelegate OnHPChanged;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, meta = (AllowPrivateAccess = "true"))

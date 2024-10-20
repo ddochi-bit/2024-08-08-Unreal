@@ -4,51 +4,41 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "TFT_AnimInstance_Monster.generated.h"
+#include "TFT_AnimInstance_IY.generated.h"
 
-
-DECLARE_MULTICAST_DELEGATE(AttackStartDelegate);
 DECLARE_MULTICAST_DELEGATE(AttackHitDelegate);
-DECLARE_MULTICAST_DELEGATE(DeathStartDelegate);
-DECLARE_MULTICAST_DELEGATE(DeathEndDelegate);
-DECLARE_MULTICAST_DELEGATE(BossDeathEndDelegate);
+DECLARE_MULTICAST_DELEGATE(DashEndDelegate);
+
+DECLARE_MULTICAST_DELEGATE(StunEndDelegate);
 
 UCLASS()
-class TFT_PROJECT_A_API UTFT_AnimInstance_Monster : public UAnimInstance
+class TFT_PROJECT_A_API UTFT_AnimInstance_IY : public UAnimInstance
 {
 	GENERATED_BODY()
-	
 public:
-	UTFT_AnimInstance_Monster();
+	UTFT_AnimInstance_IY();
+
+	virtual void NativeInitializeAnimation() override;
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	void PlayAttackMontage();
-	void DelegateTest();
-	void DelegateTest2(int32 hp, int32 mp);
+	void PlayQ_SkillMontage();
 
 	void JumpToSection(int32 sectionIndex);
 
 	UFUNCTION()
-	void AnimNotify_AttackStart();
+	void AnimNotify_DashEnd();
 
 	UFUNCTION()
 	void AnimNotify_AttackHit();
 
 	UFUNCTION()
-	void AnimNotify_DeathStart();
+	void AnimNotify_StunEnd();
 
-	UFUNCTION()
-	void AnimNotify_DeathEnd();
-
-	UFUNCTION()
-	void AnimNotify_Boss_DeathEnd();
-
-	AttackStartDelegate _attackStartDelegate;
+	DashEndDelegate _dashEndDelegate;
 	AttackHitDelegate _attackHitDelegate;
-	DeathStartDelegate _deathStartDelegate;
-	DeathEndDelegate _deathEndDelegate;
-	BossDeathEndDelegate _bossDeathEndDelegate;
+
+	StunEndDelegate _stunEndDelegate;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
@@ -57,6 +47,14 @@ private:
 	bool _isFalling;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 	bool _isDead;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
+	bool _isDashing;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State, Meta = (AllowPrivateAccess = true))
+	bool _isAirborne;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State, Meta = (AllowPrivateAccess = true))
+	bool _isStun;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State, Meta = (AllowPrivateAccess = true))
+	bool _isSlow;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 	float _vertical;
@@ -64,5 +62,9 @@ private:
 	float _horizontal;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Pawn, Meta = (AllowPrivateAccess = true))
-	class UAnimMontage* _myAnimMontage;
+	class UAnimMontage* _qSkillMontage;
+
+	UPROPERTY()
+	class ATFT_Player* _testMannequin;
+	
 };

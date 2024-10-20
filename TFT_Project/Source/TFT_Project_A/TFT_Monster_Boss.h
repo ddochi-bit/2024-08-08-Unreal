@@ -19,14 +19,18 @@ class TFT_PROJECT_A_API ATFT_Monster_Boss : public ATFT_Monster
 public:
     ATFT_Monster_Boss();
 
+
     virtual void PostInitializeComponents() override;
     virtual void BeginPlay() override;
+    virtual void Tick(float DeltaTime) override;
     virtual void SetMesh(FString path) override;
     virtual void Attack_AI() override;
 
-    virtual void AttackStart() override;
+    UFUNCTION()
+    void ExecuteSkillMontage();
 
-    
+    virtual void AttackStart() override;
+    void AttackEnd();
 
     UFUNCTION()
     void AttackHit_Boss();
@@ -34,8 +38,6 @@ public:
     virtual void DropItem() override;
 
     virtual void DeathStart() override;
-
-    virtual void Tick(float DeltaTime) override;
 
     UFUNCTION()
     void Boss_DeathEnd();
@@ -47,6 +49,17 @@ public:
 
     virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+    void SetAggroUI();
+
+    UFUNCTION()
+    void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+private:
+    FTimerHandle SkillTimerHandle;
+    void PlayNextMontage();
+
+    bool bIsMontagePlaying = false;
+
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
     UTFT_AggroComponent* AggroComponent;
@@ -55,12 +68,10 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Anim, meta = (AllowPrivateAccess = true))
     class UTFT_AnimInstance_Monster* _animInstance_Boss;
 
-    float TotalDamageTaken;
-    float TotalDamageFromPlayer;
-    float TotalDamageFromKnight;
-    float TotalDamageFromArcher;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+    UCapsuleComponent* WeaponCollisionCapsule_R;
 
-    ATFT_Player* TargetPlayer = nullptr;
-    ATFT_TeamAI_Knight* TargetKnight = nullptr;
-    ATFT_TeamAI_Archer* TargetArcher = nullptr;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+    UCapsuleComponent* WeaponCollisionCapsule_L;
+
 };

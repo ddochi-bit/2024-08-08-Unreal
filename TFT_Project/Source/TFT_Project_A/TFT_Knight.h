@@ -30,9 +30,11 @@ public:
 
 	virtual void Disable() override;
 	
+	virtual void FootStep() override;
+
 public:
 
 private:
-
+	
 
 };

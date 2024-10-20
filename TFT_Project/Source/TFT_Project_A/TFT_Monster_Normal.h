@@ -19,6 +19,8 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void BeginPlay() override;
+	
+	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetMesh(FString path) override;
 

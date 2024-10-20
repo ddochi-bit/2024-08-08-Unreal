@@ -13,6 +13,13 @@
 #include "TFT_GameInstance.h"
 #include "TFT_SoundManager.h"
 
+#include "TFT_TM_DH.h"
+#include "TFT_TM_CG.h"
+#include "TFT_TM_BJ.h"
+#include "TFT_TM_IY.h"
+#include "TFT_TestMannequin.h"
+
+
 ATFT_GameModeBase::ATFT_GameModeBase()
 {
 	static ConstructorHelpers::FClassFinder<ATFT_Knight> myKnight
@@ -29,6 +36,40 @@ ATFT_GameModeBase::ATFT_GameModeBase()
         _archer = myArcher.Class;
     }
 
+    static ConstructorHelpers::FClassFinder<ATFT_TM_DH> myDH
+    (TEXT("/Script/Engine.Blueprint'/Game/BluePrint/Player/TFT_TM_DH_BP.TFT_TM_DH_BP_C'"));
+    if (myDH.Succeeded())
+    {
+        _dh = myDH.Class;
+    }
+
+    static ConstructorHelpers::FClassFinder<ATFT_TM_CG> myCG
+    (TEXT("/Script/Engine.Blueprint'/Game/BluePrint/Player/TFT_TM_CG_BP.TFT_TM_CG_BP_C'"));
+    if (myCG.Succeeded())
+    {
+        _cg = myCG.Class;
+    }
+
+    static ConstructorHelpers::FClassFinder<ATFT_TM_BJ> myBJ
+    (TEXT("/Script/Engine.Blueprint'/Game/BluePrint/Player/TFT_TM_BJ_BP.TFT_TM_BJ_BP_C'"));
+    if (myBJ.Succeeded())
+    {
+        _bj = myBJ.Class;
+    }
+
+    static ConstructorHelpers::FClassFinder<ATFT_TM_IY> myIY
+    (TEXT("/Script/Engine.Blueprint'/Game/BluePrint/Player/TFT_TM_IY_BP.TFT_TM_IY_BP_C'"));
+    if (myIY.Succeeded())
+    {
+        _iy = myIY.Class;
+    }
+
+    static ConstructorHelpers::FClassFinder<ATFT_TestMannequin> myTestM
+    (TEXT("/Script/Engine.Blueprint'/Game/BluePrint/Player/TFT_TestMannequin_BP.TFT_TestMannequin_BP_C'"));
+    if (myTestM.Succeeded())
+    {
+        _testM = myTestM.Class;
+    }
 
 
     if (UClass* JobSelectionWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/BluePrint/UI/TFT_Job_BP.TFT_Job_BP_C'")))
@@ -47,6 +88,7 @@ ATFT_GameModeBase::ATFT_GameModeBase()
     {
         UE_LOG(LogTemp, Error, TEXT("Failed to load JobSelectionWidgetClass"));
     }
+  
 }
 
 void ATFT_GameModeBase::PostInitializeComponents()
@@ -57,6 +99,13 @@ void ATFT_GameModeBase::PostInitializeComponents()
     {
         JobSelectionWidgetInstance->_knightSelected.AddDynamic(this, &ATFT_GameModeBase::SetPlayerKnight);
         JobSelectionWidgetInstance->_archerSelected.AddDynamic(this, &ATFT_GameModeBase::SetPlayerArcher);
+
+        JobSelectionWidgetInstance->_DHSelected.AddDynamic(this, &ATFT_GameModeBase::SetPlayerDH);
+        JobSelectionWidgetInstance->_CGSelected.AddDynamic(this, &ATFT_GameModeBase::SetPlayerCG);
+        JobSelectionWidgetInstance->_BJSelected.AddDynamic(this, &ATFT_GameModeBase::SetPlayerBJ);
+        JobSelectionWidgetInstance->_IYSelected.AddDynamic(this, &ATFT_GameModeBase::SetPlayerIY);
+        
+        JobSelectionWidgetInstance->_testSelected.AddDynamic(this, &ATFT_GameModeBase::SetPlayerTest);
     }
 
 }
@@ -65,7 +114,7 @@ void ATFT_GameModeBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-
+    
 }
 
 void ATFT_GameModeBase::SetPlayerKnight()
@@ -98,4 +147,74 @@ void ATFT_GameModeBase::SetPlayerArcher()
     GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
 
     SoundManager->Play("Archer_Choice", location);
+}
+
+void ATFT_GameModeBase::SetPlayerDH()
+{
+    DefaultPawnClass = _dh;
+    FVector location = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+    FRotator rotation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorRotation();
+
+    ATFT_TM_DH* player = GetWorld()->SpawnActor<ATFT_TM_DH>(_dh, location, rotation);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorHiddenInGame(true);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorEnableCollision(false);
+    GetWorld()->GetFirstPlayerController()->UnPossess();
+    GetWorld()->GetFirstPlayerController()->Possess(player);
+    GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+}
+
+void ATFT_GameModeBase::SetPlayerCG()
+{
+    DefaultPawnClass = _cg;
+    FVector location = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+    FRotator rotation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorRotation();
+
+    ATFT_TM_CG* player = GetWorld()->SpawnActor<ATFT_TM_CG>(_cg, location, rotation);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorHiddenInGame(true);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorEnableCollision(false);
+    GetWorld()->GetFirstPlayerController()->UnPossess();
+    GetWorld()->GetFirstPlayerController()->Possess(player);
+    GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+}
+
+void ATFT_GameModeBase::SetPlayerBJ()
+{
+    DefaultPawnClass = _bj;
+    FVector location = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+    FRotator rotation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorRotation();
+
+    ATFT_TM_BJ* player = GetWorld()->SpawnActor<ATFT_TM_BJ>(_bj, location, rotation);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorHiddenInGame(true);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorEnableCollision(false);
+    GetWorld()->GetFirstPlayerController()->UnPossess();
+    GetWorld()->GetFirstPlayerController()->Possess(player);
+    GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+}
+
+void ATFT_GameModeBase::SetPlayerIY()
+{
+    DefaultPawnClass = _iy;
+    FVector location = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+    FRotator rotation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorRotation();
+
+    ATFT_TM_IY* player = GetWorld()->SpawnActor<ATFT_TM_IY>(_iy, location, rotation);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorHiddenInGame(true);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorEnableCollision(false);
+    GetWorld()->GetFirstPlayerController()->UnPossess();
+    GetWorld()->GetFirstPlayerController()->Possess(player);
+    GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+}
+
+void ATFT_GameModeBase::SetPlayerTest()
+{
+    DefaultPawnClass = _testM;
+    FVector location = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+    FRotator rotation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorRotation();
+
+    ATFT_TestMannequin* player = GetWorld()->SpawnActor<ATFT_TestMannequin>(_testM, location, rotation);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorHiddenInGame(true);
+    GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorEnableCollision(false);
+    GetWorld()->GetFirstPlayerController()->UnPossess();
+    GetWorld()->GetFirstPlayerController()->Possess(player);
+    GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
 }

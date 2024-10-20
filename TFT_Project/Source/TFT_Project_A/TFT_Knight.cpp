@@ -15,6 +15,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Blueprint/UserWidget.h"
 
+#include "Kismet/GameplayStatics.h"
+
 ATFT_Knight::ATFT_Knight()
 {
 	_meshCom = CreateDefaultSubobject<UTFT_MeshComponent>(TEXT("Mesh_Com"));
@@ -51,6 +53,8 @@ void ATFT_Knight::PostInitializeComponents()
 		_animInstanceKnight->_attackHitDelegate.AddUObject(this, &ATFT_Knight::AttackHit);
 		_animInstanceKnight->_deathStartDelegate.AddUObject(this, &ATFT_Knight::DeathStart);
 		_animInstanceKnight->_deathEndDelegate.AddUObject(this, &ATFT_Knight::Disable);
+
+		_animInstanceKnight->_footStepDelegate.AddUObject(this, &ATFT_Knight::FootStep);
 	}
 
 	
@@ -73,7 +77,7 @@ void ATFT_Knight::BeginPlay()
 {
 	Super::BeginPlay();
 
-	_statCom->SetLevelAndInit(1);
+	_statCom->SetLevelAndInit(8);
 }
 
 void ATFT_Knight::SetMesh(FString path)
@@ -120,8 +124,6 @@ void ATFT_Knight::AttackHit()
 		_hitPoint = hitResult.ImpactPoint;
 		EffectManager->Play("N_Knight_Attack_Hit", 1, _hitPoint);
 	}
-
-
 }
 
 void ATFT_Knight::DeathStart()
@@ -138,4 +140,56 @@ void ATFT_Knight::Disable()
 	Super::Disable();
 
 	_animInstanceKnight->_deathEndDelegate.RemoveAll(this);
+}
+
+void ATFT_Knight::FootStep()
+{
+	Super::FootStep();
+
+	auto player = GetWorld()->GetFirstPlayerController()->GetOwner();
+
+	FVector start = GetActorLocation();
+	FRotator rotator = GetActorRotation();
+	FVector lineDirAndDist = FVector(1.0f, 1.0f, -100.0f);
+	FVector end = start * lineDirAndDist;
+	FHitResult hitResult;
+
+	FCollisionQueryParams qParams;
+	qParams.AddIgnoredActor(this);
+	qParams.bReturnPhysicalMaterial = true;
+
+	GetWorld()->LineTraceSingleByChannel
+	(
+		hitResult,
+		start,
+		end,
+		ECollisionChannel::ECC_Visibility,
+		qParams
+	);
+	
+	if (hitResult.PhysMaterial != nullptr)
+	{
+
+		FString hitName = hitResult.PhysMaterial->GetName();
+
+		UE_LOG(LogTemp, Log, TEXT("%s"), *hitName);
+	}
+
+	if (hitResult.PhysMaterial != nullptr)
+	{
+		switch (hitResult.PhysMaterial->SurfaceType)
+		{
+		case SurfaceType1:
+			SoundManager->Play("Knight_Walk_Stone", end);
+			break;
+		case SurfaceType2:
+			SoundManager->Play("Knight_Walk_Grass", end);
+			break;
+		case SurfaceType3:
+			SoundManager->Play("Knight_Walk_Water", end);
+			break;
+		default:
+			break;
+		}
+	}
 }

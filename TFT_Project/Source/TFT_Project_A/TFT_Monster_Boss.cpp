@@ -6,6 +6,7 @@
 #include "Engine/DamageEvents.h"
 #include "DrawDebugHelpers.h"
 #include "TFT_Monster_AIController.h"
+#include "TFT_BossAI_Controller.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "TFT_AggroComponent.h"
 #include "TFT_TeamAI_Knight.h"
@@ -15,6 +16,13 @@
 #include "TFT_GameInstance.h"
 #include "TFT_SoundManager.h"
 #include "TFT_Effect_Manager.h"
+#include "TFT_UIManager.h"
+
+#include "TFT_AggroUI.h"
+
+#include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+
 #include "Kismet/GameplayStatics.h"
 
 ATFT_Monster_Boss::ATFT_Monster_Boss()
@@ -31,13 +39,21 @@ ATFT_Monster_Boss::ATFT_Monster_Boss()
     }
 
     AggroComponent = CreateDefaultSubobject<UTFT_AggroComponent>(TEXT("AggroComponent"));
-
-    TotalDamageTaken = 0.0f;
-    TotalDamageFromPlayer = 0.0f;
-    TotalDamageFromKnight = 0.0f;
-    TotalDamageFromArcher = 0.0f;
+       
 
     _possessionExp = 100;
+
+    WeaponCollisionCapsule_R = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponCollisionCapsule_R"));
+    WeaponCollisionCapsule_R->SetupAttachment(GetMesh(), TEXT("weapon_r"));
+
+    WeaponCollisionCapsule_L = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponCollisionCapsule_L"));
+    WeaponCollisionCapsule_L->SetupAttachment(GetMesh(), TEXT("weapon_l"));
+
+    WeaponCollisionCapsule_R->SetCapsuleRadius(10.f);
+    WeaponCollisionCapsule_R->SetCapsuleHalfHeight(30.f);
+
+    WeaponCollisionCapsule_L->SetCapsuleRadius(10.f);
+    WeaponCollisionCapsule_L->SetCapsuleHalfHeight(30.f);
 }
 
 void ATFT_Monster_Boss::PostInitializeComponents()
@@ -54,6 +70,7 @@ void ATFT_Monster_Boss::PostInitializeComponents()
         _animInstance_Boss->_deathStartDelegate.AddUObject(this, &ATFT_Monster_Boss::DeathStart);
         _animInstance_Boss->_bossDeathEndDelegate.AddUObject(this, &ATFT_Monster_Boss::Boss_DeathEnd);
         _animInstance_Boss->_deathEndDelegate.AddUObject(this, &ATFT_Monster_Boss::BossDisable);
+        _animInstance_Boss->OnMontageEnded.AddDynamic(this, &ATFT_Monster_Boss::OnAttackMontageEnded);
     }
 
     if (HpBarWidgetClass)
@@ -79,9 +96,42 @@ void ATFT_Monster_Boss::BeginPlay()
 {
     Super::BeginPlay();
 
-    _statCom->SetLevelAndInit(100);
+    if (AggroComponent)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("AggroComponent is valid."));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("AggroComponent is not initialized!"));
+    }
 
+    _statCom->SetLevelAndInit(101);
     UpdateBlackboardTarget();
+}
+
+void ATFT_Monster_Boss::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    AActor* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+
+    if (Player)
+    {
+        float Distance = FVector::Dist(Player->GetActorLocation(), GetActorLocation());
+
+        if (HpBarWidgetInstance)
+        {
+            if (Distance <= 1500.0f)
+            {
+                HpBarWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+            }
+            else
+            {
+                HpBarWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+            }
+        }
+    }
+
 }
 
 void ATFT_Monster_Boss::SetMesh(FString path)
@@ -95,14 +145,52 @@ void ATFT_Monster_Boss::Attack_AI()
 
     if (_isAttacking == false && _animInstance_Boss != nullptr)
     {
-        _animInstance_Boss->PlayAttackMontage();
-        _isAttacking = true;
-
-        _curAttackIndex %= 3;
-        _curAttackIndex++;
-
-        _animInstance_Boss->JumpToSection(_curAttackIndex);
+        PlayNextMontage();
     }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Attack is already in progress."));
+    }
+}
+
+
+
+void ATFT_Monster_Boss::ExecuteSkillMontage()
+{
+    if (_animInstance_Boss != nullptr)
+    {
+        _animInstance_Boss->PlaySkillMontage();
+        UE_LOG(LogTemp, Warning, TEXT("��ų ��Ÿ�ְ� ����Ǿ����ϴ�."));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("�ִϸ��̼� �ν��Ͻ��� ��ȿ���� �ʽ��ϴ�."));
+    }
+}
+
+void ATFT_Monster_Boss::PlayNextMontage()
+{
+    if (!bIsMontagePlaying)
+    {
+        bIsMontagePlaying = true;
+        _curAttackIndex %= 3;
+
+        _animInstance_Boss->PlayAttackMontage();
+        _animInstance_Boss->JumpToSection(_curAttackIndex);
+
+        if (!GetWorldTimerManager().IsTimerActive(SkillTimerHandle))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Attack started, setting skill timer."));
+            GetWorldTimerManager().SetTimer(SkillTimerHandle, this, &ATFT_Monster_Boss::ExecuteSkillMontage, 10.0f, true);
+        }
+    }
+}
+
+void ATFT_Monster_Boss::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+    bIsMontagePlaying = false;
+
+    ExecuteSkillMontage();
 }
 
 void ATFT_Monster_Boss::AttackStart()
@@ -111,6 +199,16 @@ void ATFT_Monster_Boss::AttackStart()
 
     SoundManager->Play("Monster_Boss_Swing", GetActorLocation());
 }
+
+void ATFT_Monster_Boss::AttackEnd()
+{
+    Super::AttackEnd();
+
+    _isAttacking = false;
+
+    GetWorldTimerManager().ClearTimer(SkillTimerHandle);
+}
+
 
 void ATFT_Monster_Boss::AttackHit_Boss()
 {
@@ -150,14 +248,28 @@ void ATFT_Monster_Boss::AttackHit_Boss()
 
         EffectManager->Play("N_Monster_Boss_Attack_Hit", 1, _hitPoint);
 
-   
-    }
-    else
-    {
-   
+
+        ATFT_Creature* target = Cast<ATFT_Creature>(hitResult.GetActor());
+        if (target != nullptr)
+        {
+            switch (_curAttackIndex)
+            {
+            case 1:
+                target->SetState(StateType::Airborne);
+                break;
+            case 2:
+                target->SetState(StateType::Stun);
+                break;
+            case 3:
+                target->SetState(StateType::Slow);
+                break;
+            default:
+                break;
+            }
+        }
     }
 
-  
+    DrawDebugSphere(GetWorld(), center, attackRadius, 20, drawColor, false, 2.0f);
 
 }
 
@@ -172,35 +284,9 @@ void ATFT_Monster_Boss::DeathStart()
 
     SoundManager->Play("Monster_Boss_Death", GetActorLocation());
 
+    UIMANAGER->CloseWidget(UIType::AggroUI);
+
     _animInstance_Boss->_deathStartDelegate.RemoveAll(this);
-}
-
-void ATFT_Monster_Boss::Tick(float DeltaTime)
-{
-    Super::Tick(DeltaTime);
-
-    // 플레이어 캐릭터 가져오기
-    AActor* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-
-    if (Player)
-    {
-        // 플레이어와 AI 캐릭터 간 거리 계산
-        float Distance = FVector::Dist(Player->GetActorLocation(), GetActorLocation());
-
-        // 체력바 위젯이 존재하는지 확인
-        if (HpBarWidgetInstance)
-        {
-            // 특정 거리 내에 있을 경우 체력바 표시, 멀리 있으면 숨김
-            if (Distance <= 1000.0f)  // 예: 1000 유닛 이내일 때 체력바 표시
-            {
-                HpBarWidgetInstance->SetVisibility(ESlateVisibility::Visible);
-            }
-            else
-            {
-                HpBarWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-            }
-        }
-    }
 }
 
 void ATFT_Monster_Boss::Boss_DeathEnd()
@@ -227,26 +313,9 @@ void ATFT_Monster_Boss::BossDisable()
 
 void ATFT_Monster_Boss::UpdateBlackboardTarget()
 {
-    float MaxDamage = 0.0f;
-    AActor* TargetActor = nullptr;
+    AActor* TargetActor = AggroComponent->GetAggroTarget();
 
-    if (TotalDamageFromPlayer > MaxDamage && TargetPlayer != nullptr)
-    {
-        MaxDamage = TotalDamageFromPlayer;
-        TargetActor = TargetPlayer;
-    }
-    if (TotalDamageFromKnight > MaxDamage && TargetKnight != nullptr)
-    {
-        MaxDamage = TotalDamageFromKnight;
-        TargetActor = TargetKnight;
-    }
-    if (TotalDamageFromArcher > MaxDamage && TargetArcher != nullptr)
-    {
-        MaxDamage = TotalDamageFromArcher;
-        TargetActor = TargetArcher;
-    }
-
-    ATFT_Monster_AIController* AIController = Cast<ATFT_Monster_AIController>(GetController());
+    ATFT_BossAI_Controller* AIController = Cast<ATFT_BossAI_Controller>(GetController());
     if (AIController && TargetActor)
     {
         UBlackboardComponent* BlackboardComp = AIController->GetBlackboardComponent();
@@ -261,40 +330,46 @@ float ATFT_Monster_Boss::TakeDamage(float DamageAmount, FDamageEvent const& Dama
 {
     float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-    TotalDamageTaken += ActualDamage;
-
-    if (AggroComponent)
-    {
-        AggroComponent->AddDamage(ActualDamage, DamageCauser);
-    }
-
-    if (ATFT_Player* Player = Cast<ATFT_Player>(DamageCauser))
-    {
-        TotalDamageFromPlayer += ActualDamage;
-        TargetPlayer = Player; 
-
-        UE_LOG(LogTemp, Warning, TEXT("Boss received %f damage from Player. Total Damage from Player: %f, Total Damage Taken: %f"), ActualDamage, TotalDamageFromPlayer, TotalDamageTaken);
-    }
-    else if (ATFT_TeamAI_Knight* Knight = Cast<ATFT_TeamAI_Knight>(DamageCauser))
-    {
-        TotalDamageFromKnight += ActualDamage;
-        TargetKnight = Knight;
-
-        UE_LOG(LogTemp, Warning, TEXT("Boss received %f damage from Knight. Total Damage from Knight: %f, Total Damage Taken: %f"), ActualDamage, TotalDamageFromKnight, TotalDamageTaken);
-    }
-    else if (ATFT_TeamAI_Archer* Archer = Cast<ATFT_TeamAI_Archer>(DamageCauser))
-    {
-        TotalDamageFromArcher += ActualDamage;
-        TargetArcher = Archer;
-
-        UE_LOG(LogTemp, Warning, TEXT("Boss received %f damage from Archer. Total Damage from Archer: %f, Total Damage Taken: %f"), ActualDamage, TotalDamageFromArcher, TotalDamageTaken);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Boss received %f damage from an unknown source. Total Damage Taken: %f"), ActualDamage, TotalDamageTaken);
-    }
+    AggroComponent->AddDamage(ActualDamage, DamageCauser); //
+    AggroComponent->AggroList();
 
     UpdateBlackboardTarget();
 
+    SetAggroUI();
+
     return ActualDamage;
 }
+
+void ATFT_Monster_Boss::SetAggroUI()
+{
+    UIMANAGER->OpenWidget(UIType::AggroUI);
+
+    auto aggroUI = UIMANAGER->GetAggroUI();
+
+    auto PDM = AggroComponent->PlayerDamageMap;
+
+    TArray<float> damages;
+    float totalDamage = 0;
+
+    for (auto set : PDM)
+    {
+        damages.Add(set.Value);
+        totalDamage += set.Value;
+    }
+
+    PDM.ValueSort([](const float& A, const float& B)
+        {
+            return A > B;
+        });
+
+    int32 tempCount = 0;
+    for (auto set : PDM)
+    {
+        aggroUI->SetAggroUI(tempCount, set.Key, totalDamage, set.Value);
+
+        tempCount++;
+
+        if (tempCount > 4) tempCount = 4;
+    }
+}
+

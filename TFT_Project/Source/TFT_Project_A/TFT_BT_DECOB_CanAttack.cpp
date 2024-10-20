@@ -27,7 +27,7 @@ bool UTFT_BT_DECOB_CanAttack::CalculateRawConditionValue(UBehaviorTreeComponent&
 
 	float distance = target->GetDistanceTo(currentPawn);
 
-	return distance < 300.0f;
+	return distance < 500.0f;
 
 	return false;
 }

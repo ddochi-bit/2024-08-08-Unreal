@@ -15,6 +15,8 @@ class TFT_PROJECT_A_API ATFT_TeamAI_Knight : public ATFT_TeamAI
 public:
 	ATFT_TeamAI_Knight();
 
+	virtual void Tick(float DeltaTime) override;
+
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
@@ -35,4 +37,6 @@ public:
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Anim, meta = (AllowPrivateAccess = true))
 	class UTFT_AnimInstance_Knight* _animInstance_Knight;
+
+	int32 Index;
 };

@@ -6,8 +6,11 @@
 #include "Blueprint/UserWidget.h"
 #include "TFT_StoreUI.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FPurchaseDelegateOneParam, int32);
+class UTextBlock;
+class ATFT_Item;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FPurchaseDelegateOneParam, int32)
+DECLARE_MULTICAST_DELEGATE_TwoParams(ItemBuyEvent, ATFT_Item*, int32 index)
 
 UCLASS()
 class TFT_PROJECT_A_API UTFT_StoreUI : public UUserWidget
@@ -15,7 +18,7 @@ class TFT_PROJECT_A_API UTFT_StoreUI : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	virtual void NativeConstruct() override;
+	virtual bool Initialize() override;
 
 	UFUNCTION()
 	void StoreOpenClose();
@@ -24,7 +27,13 @@ public:
 	void PurchaseItem();
 
 	UFUNCTION()
-	void SetItemSlot(int32 itemId, int32 slotIndex);
+	void SelectSlotStoreItem(int32 index);
+
+	UFUNCTION()
+	void SetItemSlot(UTexture2D* texture, int32 slotIndex);
+	UFUNCTION()
+	void SetStoreItem(ATFT_Item* items, int32 index);
+
 
 	UFUNCTION()
 	void SetToDetailView0();
@@ -44,12 +53,15 @@ public:
 	void SetToDetailView7();
 	UFUNCTION()
 	void SetToDetailView8();
+	
 
-	UFUNCTION()
-	void OnHovered(int32 slotIndex);
+
+	void UISetItemName(int32 index);
+	void UISetItemMiniInfo(int32 index);
+	void UISetItemPrice(int32 index);
 
 	FPurchaseDelegateOneParam _purchaseDelegateOneParam;
-
+	ItemBuyEvent _ItemBuy;
 private:
 	UPROPERTY(meta = (BindWidget))
 	class UCanvasPanel* Store_Panel;
@@ -71,7 +83,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* DetailViewImg;
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Item_Information;
+	UTextBlock* Item_Information;
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* Item_miniInfo;
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Item_Price;
 
@@ -79,16 +93,13 @@ public:
 	UButton* Purchase_Button;
 	UPROPERTY(meta = (BindWidget))
 	UButton* Exit_Button;
-	
 
 	UTexture2D* _emptySlot;
-	UTexture2D* _redGem;
-	UTexture2D* _blueGem;
-	UTexture2D* _emeraldGem;
-	UTexture2D* _purplePotion;
-	UTexture2D* _wildGinseng;
-	UTexture2D* _greenSoup;
-	UTexture2D* _shield;
-	UTexture2D* _arrowHead;
-
+	FText _nullText = FText::FromString("");
+	
+private:
+	TArray<ATFT_Item*> _Storesaveiteminfo;
+	ATFT_Item* _this_Item;
+	int32 this_Index = -1;
+	
 };

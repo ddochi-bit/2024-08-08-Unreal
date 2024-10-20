@@ -34,26 +34,34 @@ public:
 
 	UFUNCTION()
 	void DropItem(int32 index);
+	UFUNCTION()
+	void SellItem(int32 index);
+	void UseItem(int32 index);
 
 	void SlectItemUI(int32 index);
 
 	int32 GetPlayerGold() { return _playerGold; }
 	void AddPlayerGold(int32 gold);
 
+	void SetWeapon(class ATFT_Item* NewWeapon);
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items, meta = (AllowPrivateAccess = "true"))
 	TArray<ATFT_Item*> _items;
 
 	int32 _inventoryMaxSize = 9;
-
-public:
 	int32 _playerGold = 100;
 
-	UTFT_InvenComponent* GetMyInvenCom() { return this; }
+
+public:
+	// Delegate
 	InvenUIOpen _invenOpenDelegate;
 
 	ItemAdded _itemAddedEvent;
 	ItemAdded _itemSlectEvent;
 
 	InvenGold _GoldChangeEvnet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
+	ATFT_Item* _currentWeapon;
 };

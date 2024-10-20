@@ -17,7 +17,11 @@ public:
     void AddDamage(float DamageAmount, AActor* DamagingActor);
 
    
-    AActor* GetAggroTarget() const;
+    AActor* GetAggroTarget();
+    float GetTotalDamage(AActor* DamagingActor);
+    void AggroList();
+
+
 
 protected:
     virtual void BeginPlay() override;
@@ -27,11 +31,12 @@ private:
 
     float CurrentAggro; 
     float AggroThreshold; 
-    
-    UPROPERTY()
-    AActor* AggroTarget; 
+    float maxValue = 0.0f;
 
-    
+public:
     UPROPERTY()
     TMap<AActor*, float> PlayerDamageMap;
+
+    UPROPERTY()
+    AActor* AggroTarget;
 };
